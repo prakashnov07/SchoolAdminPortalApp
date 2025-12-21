@@ -5,8 +5,9 @@ import {
   Alert,
   TouchableOpacity,
   FlatList,
-  SafeAreaView,
+  Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -38,7 +39,8 @@ const adminPanelStyles = {
     textAlign: 'center',
   },
   headerContainer: {
-    paddingVertical: 24,
+    paddingTop: Platform.OS === 'android' ? 40 : 24,
+    paddingBottom: 24,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
@@ -249,7 +251,14 @@ export default function AdminPanelScreen({ navigation }) {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+    <SafeAreaView 
+      style={{ 
+        flex: 1, 
+        backgroundColor: '#fff',
+        paddingTop: Platform.OS === 'android' ? 0 : 0,
+      }}
+      edges={Platform.OS === 'ios' ? ['top', 'bottom'] : ['bottom']}
+    >
       <AdminHeader onLogout={handleLogout} />
       <FlatList
         data={adminPanelItems}

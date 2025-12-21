@@ -11,7 +11,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { MessagesContext } from '../context/MessagesContext';
+import { CoreContext } from '../context/CoreContext';
 
 const blackColor = '#000';
 const mainTextColorDark = '#4a00e0';
@@ -47,11 +47,14 @@ const styles = {
 };
 
 export default function MessagesScreen({ navigation }) {
-  const { messages } = useContext(MessagesContext);
+  const { messages } = useContext(CoreContext);
   const [searchText, setSearchText] = useState('');
 
-  const filteredPosts = messages.filter((post) =>
-    post.title.toLowerCase().includes(searchText.toLowerCase())
+  // Safety check for messages
+  const safeMessages = messages || [];
+
+  const filteredPosts = safeMessages.filter((post) =>
+    post?.title?.toLowerCase().includes(searchText.toLowerCase())
   );
 
   React.useLayoutEffect(() => {
@@ -96,30 +99,33 @@ export default function MessagesScreen({ navigation }) {
             </View>
           </View>
           <ScrollView style={styles.postsContainer}>
-            {filteredPosts.map((post) => (
-              <View key={post.id} style={styles.postCard}>
-                <View style={styles.postHeader}>
-                  <Icon name="bell" size={20} color={blackColor} />
-                  <Text style={styles.postTitle}>{post.title}</Text>
+            {filteredPosts.map((post, index) => {
+              if (!post) return null;
+              return (
+                <View key={post.id || index} style={styles.postCard}>
+                  <View style={styles.postHeader}>
+                    <Icon name="bell" size={20} color={blackColor} />
+                    <Text style={styles.postTitle}>{post.title || 'No Title'}</Text>
+                  </View>
+                  <Text style={styles.postDescription}>{post.description || 'No Description'}</Text>
+                  {post.attachment && (
+                    <Text style={{ fontWeight: 'bold', marginTop: 8, color: '#555' }}>
+                      Attachment: {post.attachment.type}
+                    </Text>
+                  )}
+                  {post.photos && post.photos.length > 0 && (
+                    <>
+                      <Text style={styles.photosCount}>{post.photos.length} photos</Text>
+                      <View style={styles.photosContainer}>
+                        {post.photos.map((photoUri, idx) => (
+                          <Image key={idx} source={{ uri: photoUri }} style={styles.photoThumbnail} />
+                        ))}
+                      </View>
+                    </>
+                  )}
                 </View>
-                <Text style={styles.postDescription}>{post.description}</Text>
-                {post.attachment && (
-                  <Text style={{ fontWeight: 'bold', marginTop: 8, color: '#555' }}>
-                    Attachment: {post.attachment.type}
-                  </Text>
-                )}
-                {post.photos && post.photos.length > 0 && (
-                  <>
-                    <Text style={styles.photosCount}>{post.photos.length} photos</Text>
-                    <View style={styles.photosContainer}>
-                      {post.photos.map((photoUri, idx) => (
-                        <Image key={idx} source={{ uri: photoUri }} style={styles.photoThumbnail} />
-                      ))}
-                    </View>
-                  </>
-                )}
-              </View>
-            ))}
+              );
+            })}
           </ScrollView>
         </View>
       </KeyboardAvoidingView>

@@ -14,9 +14,10 @@ const initialStudentPosts = [
   },
 ];
 
-export const MessagesContext = createContext();
+export const CoreContext = createContext();
 
-export function MessagesProvider({ children }) {
+export function CoreProvider({ children }) {
   const [messages, setMessages] = useState(initialStudentPosts);
-  return <MessagesContext.Provider value={{ messages, setMessages }}>{children}</MessagesContext.Provider>;
+  
+  return <CoreContext.Provider value={{ messages, setMessages }}>{children}</CoreContext.Provider>;
 }

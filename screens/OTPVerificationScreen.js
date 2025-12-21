@@ -23,6 +23,8 @@ const styles = {
     borderRadius: 20,
     padding: 30,
     alignItems: 'center',
+    minHeight: 400,
+    justifyContent: 'center',
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 5 },
       android: { elevation: 6 },
@@ -46,9 +48,19 @@ export default function OTPVerificationScreen({ route, navigation }) {
   const inputsRef = useRef([]);
 
   useEffect(() => {
-    if (inputsRef.current[0]) {
-      setTimeout(() => inputsRef.current[0].focus(), 100);
-    }
+    // Focus first input after component is fully mounted
+    const focusFirstInput = () => {
+      if (inputsRef.current[0]) {
+        inputsRef.current[0].focus();
+      }
+    };
+    
+    // Use a more reliable way to focus after render
+    const timer = requestAnimationFrame(() => {
+      requestAnimationFrame(focusFirstInput);
+    });
+    
+    return () => cancelAnimationFrame(timer);
   }, []);
 
   const handleOtpChange = (text, index) => {
@@ -83,8 +95,8 @@ export default function OTPVerificationScreen({ route, navigation }) {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#8e2de2' }}>
       <KeyboardAvoidingView
         style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 20 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <View style={styles.otpCard}>
           <View style={styles.otpIconCircle}>
@@ -98,15 +110,21 @@ export default function OTPVerificationScreen({ route, navigation }) {
           <View style={styles.otpInputContainer}>
             {otp.map((digit, index) => (
               <TextInput
-                key={index}
+                key={`otp-${index}`}
                 style={styles.otpInputBox}
                 keyboardType="numeric"
                 maxLength={1}
                 value={digit}
                 onChangeText={(text) => handleOtpChange(text, index)}
-                ref={(ref) => (inputsRef.current[index] = ref)}
-                returnKeyType="done"
+                ref={(ref) => {
+                  if (ref) {
+                    inputsRef.current[index] = ref;
+                  }
+                }}
+                returnKeyType={index === 5 ? 'done' : 'next'}
                 textAlign="center"
+                autoCorrect={false}
+                autoComplete="off"
               />
             ))}
           </View>

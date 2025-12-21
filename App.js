@@ -7,7 +7,8 @@ import OTPVerificationScreen from './screens/OTPVerificationScreen';
 import MessagesScreen from './screens/MessagesScreen';
 import AdminPanelScreen from './screens/AdminPanelScreen';
 import SendMessagesScreen from './screens/SendMessagesScreen';
-import { MessagesProvider } from './context/MessagesContext';
+import { CoreProvider } from './context/CoreContext';
+import {StyleProvider} from './context/StyleContext';
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
@@ -41,7 +42,8 @@ function MainTabs() {
 
 export default function App() {
   return (
-    <MessagesProvider>
+    <CoreProvider>
+      <StyleProvider>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="MobileNumberVerification">
           <Stack.Screen name="MobileNumberVerification" component={MobileNumberVerificationScreen} options={{ headerShown: false }} />
@@ -64,6 +66,7 @@ export default function App() {
           />
         </Stack.Navigator>
       </NavigationContainer>
-    </MessagesProvider>
+      </StyleProvider>
+    </CoreProvider>
   );
 }

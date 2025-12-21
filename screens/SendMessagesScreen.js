@@ -17,129 +17,133 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { MessagesContext } from '../context/MessagesContext';
-
-const blackColor = '#000';
-const mainTextColor = '#fff';
-const mainBackgroundGradient = ['#8e2de2', '#4a00e0'];
-
-const sendMessageStyles = {
-  container: { flexGrow: 1, padding: 20, backgroundColor: '#f4e0ff' },
-  title: { fontSize: 28, fontWeight: '900', marginBottom: 24, textAlign: 'center', color: blackColor },
-  label: { fontWeight: '700', fontSize: 18, marginTop: 12, marginBottom: 8, color: blackColor },
-  pickerWrapper: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: blackColor,
-  },
-  picker: { height: 50, color: blackColor },
-  messageInput: {
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 14,
-    fontSize: 16,
-    textAlignVertical: 'top',
-    backgroundColor: '#f4e0ff',
-    borderColor: blackColor,
-    color: blackColor,
-  },
-  attachmentContainer: { flexDirection: 'row', marginTop: 18, marginBottom: 10, justifyContent: 'space-between' },
-  attachmentOption: {
-    flex: 1,
-    marginHorizontal: 6,
-    paddingVertical: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderColor: blackColor,
-  },
-  attachmentOptionSelected: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  attachmentOptionText: { marginTop: 6, fontWeight: '600', fontSize: 16, color: blackColor },
-  sendButton: { marginTop: 30, borderRadius: 24, overflow: 'hidden', elevation: 8 },
-  sendButtonGradient: { paddingVertical: 16, alignItems: 'center' },
-  sendButtonText: { fontSize: 20, fontWeight: 'bold', color: mainTextColor },
-  pickerModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    paddingHorizontal: 40,
-  },
-  pickerModalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-  },
-  pickerModalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  pickerModalItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderBottomColor: '#ddd',
-    borderBottomWidth: 1,
-  },
-  pickerModalItemSelected: {
-    backgroundColor: '#d1bee7',
-  },
-  pickerModalItemText: {
-    fontSize: 16,
-    color: '#000',
-  },
-  pickerModalItemTextSelected: {
-    fontWeight: 'bold',
-    color: mainTextColor,
-  },
-  pickerModalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12,
-  },
-  pickerModalButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  pickerModalButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: mainTextColor,
-  },
-  pickerButton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginBottom: 12,
-    borderColor: blackColor,
-    backgroundColor: '#d6bee7',
-  },
-  pickerButtonText: {
-    fontSize: 16,
-    color: blackColor,
-  },
-  attachmentInfo: { marginTop: 8, fontStyle: 'italic', fontSize: 14, textAlign: 'center', color: blackColor },
-};
+import { CoreContext } from '../context/CoreContext';
+import { StyleContext } from '../context/StyleContext';
 
 export default function SendMessagesScreen() {
   const classes = ['All Classes', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5'];
   const sections = ['A', 'B', 'C', 'D'];
   const priorities = ['Normal', 'High', 'Restricted', 'Scheduled'];
 
-  const { messages, setMessages } = useContext(MessagesContext);
+  const { messages, setMessages } = useContext(CoreContext);
+  const styleContext = useContext(StyleContext);
+
+  if (!styleContext) {
+    throw new Error('SendMessagesScreen must be used within a StyleProvider');
+  }
+
+  const { blackColor, mainTextColor, mainBackgroundGradient } = styleContext;
+
+  const sendMessageStyles = {
+    container: { flexGrow: 1, padding: 20, backgroundColor: '#f4e0ff' },
+    title: { fontSize: 28, fontWeight: '900', marginBottom: 24, textAlign: 'center', color: blackColor },
+    label: { fontWeight: '700', fontSize: 18, marginTop: 12, marginBottom: 8, color: blackColor },
+    pickerWrapper: {
+      borderRadius: 16,
+      overflow: 'hidden',
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: blackColor,
+    },
+    picker: { height: 50, color: blackColor },
+    messageInput: {
+      borderWidth: 1,
+      borderRadius: 16,
+      padding: 14,
+      fontSize: 16,
+      textAlignVertical: 'top',
+      backgroundColor: '#f4e0ff',
+      borderColor: blackColor,
+      color: blackColor,
+    },
+    attachmentContainer: { flexDirection: 'row', marginTop: 18, marginBottom: 10, justifyContent: 'space-between' },
+    attachmentOption: {
+      flex: 1,
+      marginHorizontal: 6,
+      paddingVertical: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderColor: blackColor,
+    },
+    attachmentOptionSelected: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+    },
+    attachmentOptionText: { marginTop: 6, fontWeight: '600', fontSize: 16, color: blackColor },
+    sendButton: { marginTop: 30, borderRadius: 24, overflow: 'hidden', elevation: 8 },
+    sendButtonGradient: { paddingVertical: 16, alignItems: 'center' },
+    sendButtonText: { fontSize: 20, fontWeight: 'bold', color: mainTextColor },
+    pickerModalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.3)',
+      justifyContent: 'center',
+      paddingHorizontal: 40,
+    },
+    pickerModalContent: {
+      backgroundColor: '#fff',
+      borderRadius: 16,
+      padding: 20,
+    },
+    pickerModalTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 12,
+      textAlign: 'center',
+    },
+    pickerModalItem: {
+      paddingVertical: 12,
+      paddingHorizontal: 10,
+      borderBottomColor: '#ddd',
+      borderBottomWidth: 1,
+    },
+    pickerModalItemSelected: {
+      backgroundColor: '#d1bee7',
+    },
+    pickerModalItemText: {
+      fontSize: 16,
+      color: '#000',
+    },
+    pickerModalItemTextSelected: {
+      fontWeight: 'bold',
+      color: mainTextColor,
+    },
+    pickerModalButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 12,
+    },
+    pickerModalButton: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 10,
+    },
+    pickerModalButtonText: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: mainTextColor,
+    },
+    pickerButton: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 16,
+      borderWidth: 1,
+      marginBottom: 12,
+      borderColor: blackColor,
+      backgroundColor: '#d6bee7',
+    },
+    pickerButtonText: {
+      fontSize: 16,
+      color: blackColor,
+    },
+    attachmentInfo: { marginTop: 8, fontStyle: 'italic', fontSize: 14, textAlign: 'center', color: blackColor },
+  };
 
   const [selectedClass, setSelectedClass] = useState('All Classes');
   const [selectedSection, setSelectedSection] = useState(sections[0]);
