@@ -1,10 +1,10 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
+  FlatList,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -12,6 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { CoreContext } from '../context/CoreContext';
+import { LinearGradient } from 'expo-linear-gradient';
+import SqlMessageItem from '../components/SqlMessageItem'; // Import the new component
 
 const blackColor = '#000';
 const mainTextColorDark = '#4a00e0';
@@ -25,19 +27,10 @@ const styles = {
   studentPanelBody: { flex: 1, padding: 15, backgroundColor: '#fff' },
   studentPanelTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 12, alignSelf: 'center', color: blackColor },
   schoolInfoBox: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  schoolName: { fontSize: 22, fontWeight: 'bold', color: blackColor },
+  schoolName: { fontSize: 18, fontWeight: 'bold', color: blackColor },
   schoolSubtitle: { fontSize: 14, color: mainTextColorDark },
   postsContainer: { flex: 1 },
-  postCard: {
-    borderRadius: 18,
-    padding: 15,
-    marginBottom: 20,
-    backgroundColor: '#f3e5f5',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84 },
-      android: { elevation: 5 },
-    }),
-  },
+  // postCard styles removed as we are using SqlMessageItem, but keeping if needed for backup or other parts
   postHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   postTitle: { fontSize: 18, fontWeight: '700', marginLeft: 8, flexShrink: 1, color: blackColor },
   postDescription: { fontSize: 16, marginBottom: 12, color: mainTextColorDark },
@@ -48,91 +41,148 @@ const styles = {
 
 export default function MessagesScreen({ navigation }) {
   const coreContext = useContext(CoreContext);
-  const { messages } = coreContext;
+  const {
+    messages,
+    fetchSqlMessages,
+    getAllClasses,
+    getAllSections,
+    getSchoolData,
+    checkUserValidity,
+    markMessageAsRead,
+    getCmo,
+    getAllowedTabs,
+    fetchCategories,
+    checkFcmToken,
+    checkStudentAttendance,
+    addAllEnqiryNo,
+    addAllRegistrationNo
+  } = coreContext;
+
   const [searchText, setSearchText] = useState('');
+
+  // Initialization logic from Home.js
+  useEffect(() => {
+    checkUserValidity(navigation);
+    fetchSqlMessages();
+    getAllClasses();
+    getAllSections();
+    getSchoolData();
+    getCmo();
+    getAllowedTabs();
+
+    // Calling the newly added actions
+    fetchCategories();
+    // checkFcmToken(token); // Token needs to be retrieved first
+    checkStudentAttendance('no'); // passing 'no' as default like in Home.js logic
+    addAllEnqiryNo();
+    addAllRegistrationNo();
+    // Intervals logic from Home.js omitted as it might be better handled differently or is specific to that implementation
+  }, []);
 
   // Safety check for messages
   const safeMessages = messages || [];
 
-  const filteredPosts = safeMessages.filter((post) =>
-    post?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
-    post?.description?.toLowerCase().includes(searchText.toLowerCase())
-  );
+  const filteredPosts = safeMessages.filter((post) => {
+    const term = searchText.toLowerCase();
+    const title = (post.title || '').toLowerCase();
+    const desc = (post.description || '').toLowerCase();
+    const content = (post.content || '').toLowerCase();
+
+    return title.includes(term) || desc.includes(term) || content.includes(term);
+  });
 
 
 
+  // Use SqlMessageItem for rendering
+  const renderItem = useCallback(({ item: post }) => {
+    if (!post) return null;
+    return <SqlMessageItem item={post} />;
+  }, []);
+
+  // AdminPanelScreen style custom header
   React.useLayoutEffect(() => {
     navigation.setOptions({
-      headerShown: true,
-      title: 'Messages',
-      headerStyle: { backgroundColor: '#fff' },
-      headerTintColor: blackColor,
-      headerTitleStyle: { fontWeight: 'bold' },
+      headerShown: false, // Hide default header
     });
   }, [navigation]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
-        <View style={styles.studentPanelHeader}>
-          <View style={styles.searchBox}>
+        {/* Custom Admin-Style Header */}
+        <LinearGradient colors={['#5a45d4', '#8562ff']} style={{
+          paddingTop: Platform.OS === 'android' ? 40 : 20,
+          paddingBottom: 24,
+          paddingHorizontal: 20,
+          borderBottomLeftRadius: 24,
+          borderBottomRightRadius: 24
+        }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View>
+              <Text style={{ fontSize: 18, color: '#ddd' }}>School Management Portal</Text>
+              <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#fff', marginTop: 4 }}>Messages</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity onPress={() => fetchSqlMessages()} style={{ padding: 8, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 20 }}>
+                <Icon name="refresh" size={24} color="#fff" />
+              </TouchableOpacity>
+              {safeMessages.filter(m => m.isread !== 'yes').length > 0 && (
+                <View style={{
+                  position: 'absolute',
+                  top: -5,
+                  right: -5,
+                  backgroundColor: 'red',
+                  borderRadius: 10,
+                  minWidth: 20,
+                  height: 20,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  paddingHorizontal: 4,
+                  borderWidth: 1.5,
+                  borderColor: '#fff'
+                }}>
+                  <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>
+                    {safeMessages.filter(m => m.isread !== 'yes').length}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* Search Box */}
+          <View style={{ marginTop: 20, flexDirection: 'row', backgroundColor: '#fff', borderRadius: 15, alignItems: 'center', paddingHorizontal: 15 }}>
+            <Icon name="magnify" color="#555" size={20} />
             <TextInput
-              placeholder="Search Old Messages"
+              placeholder="Search Messages..."
               placeholderTextColor="#999"
-              style={styles.searchInput}
+              style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 10, fontSize: 16, color: '#000' }}
               value={searchText}
               onChangeText={setSearchText}
             />
-            <TouchableOpacity style={styles.searchButton}>
-              <Icon name="magnify" color={blackColor} size={20} />
-            </TouchableOpacity>
           </View>
-        </View>
+        </LinearGradient>
+
         <View style={styles.studentPanelBody}>
-          <Text style={styles.studentPanelTitle}>Messages</Text>
+
           <View style={styles.schoolInfoBox}>
-            <Image 
-              source={{ uri: coreContext.branch?.logo || 'https://via.placeholder.com/150' }} 
-              style={{ width: 36, height: 36, borderRadius: 18 }} 
+            <Image
+              source={{ uri: coreContext.branch?.logo || 'https://via.placeholder.com/150' }}
+              style={{ width: 36, height: 36, borderRadius: 18 }}
             />
-            <View style={{ marginLeft: 12 }}>
+            <View style={{ marginLeft: 12, flex: 1 }}>
               <Text style={styles.schoolName}>{coreContext.branch?.branchname || 'SiddhantaIT'}</Text>
-              <Text style={styles.schoolSubtitle}>School Management Portal</Text>
             </View>
           </View>
-          <ScrollView style={styles.postsContainer}>
-            {filteredPosts.map((post, index) => {
-              if (!post) return null;
-              return (
-                <View key={post.id || index} style={styles.postCard}>
-                  <View style={styles.postHeader}>
-                    <Icon name="bell" size={20} color={blackColor} />
-                    <Text style={styles.postTitle}>{post.title || 'No Title'}</Text>
-                  </View>
-                  <Text style={styles.postDescription}>{post.description || 'No Description'}</Text>
-                  {post.attachment && (
-                    <Text style={{ fontWeight: 'bold', marginTop: 8, color: '#555' }}>
-                      Attachment: {post.attachment.type}
-                    </Text>
-                  )}
-                  {post.photos && post.photos.length > 0 && (
-                    <>
-                      <Text style={styles.photosCount}>{post.photos.length} photos</Text>
-                      <View style={styles.photosContainer}>
-                        {post.photos.map((photoUri, idx) => (
-                          <Image key={idx} source={{ uri: photoUri }} style={styles.photoThumbnail} />
-                        ))}
-                      </View>
-                    </>
-                  )}
-                </View>
-              );
-            })}
-          </ScrollView>
+          <FlatList
+            data={coreContext.messages}
+            renderItem={renderItem}
+            keyExtractor={(item, index) => item.id?.toString() || index.toString()}
+            style={styles.postsContainer}
+            showsVerticalScrollIndicator={false}
+          />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

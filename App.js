@@ -23,6 +23,14 @@ axios.defaults.headers.common.Authorization = security;
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+import { LayoutAnimation, UIManager, Platform } from 'react-native';
+
+if (Platform.OS === 'android') {
+  if (UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+}
+
 const mainButtonColor = '#6a00ff';
 const mainTextColor = '#fff';
 
@@ -32,11 +40,11 @@ function MainTabs() {
       screenOptions={({ route }) => ({
         tabBarActiveTintColor: '#6a00ff',
         tabBarInactiveTintColor: '#999',
-        tabBarLabelStyle: { fontSize: 14, fontWeight: 'bold' },
-        tabBarStyle: { backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#ddd' },
+        tabBarLabelStyle: { fontSize: 13, fontWeight: 'bold', marginBottom: 5 },
+        tabBarStyle: { backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#ddd', height: 80, paddingBottom: 5, paddingTop: 15 },
         tabBarIcon: ({ color, size }) => {
           let iconName = route.name === 'Messages' ? 'account-circle' : 'account-cog';
-          return <Icon name={iconName} size={size} color={color} />;
+          return <Icon name={iconName} size={30} color={color} />;
         },
         headerShown: false,
       })}
@@ -74,6 +82,7 @@ export default function App() {
         </Stack.Navigator>
       </NavigationContainer>
       </StyleProvider>
+      <Toast />
     </CoreProvider>
   );
 }

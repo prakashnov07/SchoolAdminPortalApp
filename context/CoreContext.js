@@ -30,7 +30,7 @@ const initialStudentPosts = [
 export const CoreContext = createContext();
 
 export function CoreProvider({ children }) {
-  const [messages, setMessages] = useState(initialStudentPosts);
+  const [messages, setMessages] = useState([]);
   const [phone, setPhone] = useState('');
   const [verified, setVerified] = useState(''); // ok , fail
   const [otp, setOtp] = useState('');
@@ -149,7 +149,7 @@ export function CoreProvider({ children }) {
     setStudentsForAttendance([]);
   };
 
-  const searchStudentsByClassForAttendance = (classid: string, sectionid: string, filter = '', action = '') => {
+  const searchStudentsByClassForAttendance = (classid, sectionid, filter = '', action = '') => {
     //console.log(classid, sectionid, filter, action);
 
     const owner = phone;
@@ -162,7 +162,7 @@ export function CoreProvider({ children }) {
   };
 
 
-  const searchStudentsByClass = (classid: string, sectionid: string, filter = '', action = '') => {
+  const searchStudentsByClass = (classid, sectionid, filter = '', action = '') => {
     setLoading(true);
     const owner = phone;
     axios.get('/search-by-class-v2', { params: { classid, sectionid, filter, action, owner, branchid } })
@@ -185,7 +185,7 @@ export function CoreProvider({ children }) {
 
   }
 
-  const searchStudent = (id: string, searchBy: string) => {
+  const searchStudent = (id, searchBy) => {
     //  console.log('searching student');
 
     setLoading(true);
@@ -203,7 +203,7 @@ export function CoreProvider({ children }) {
 
   };
 
-  const getAdminStudent = (regno: string, searchBy: string) => {
+  const getAdminStudent = (regno, searchBy) => {
     setLoading(true);
     const regnos = [regno];
     //console.log(regnos);
@@ -224,7 +224,10 @@ export function CoreProvider({ children }) {
 
     const date1 = new Date();
     const date2 = new Date(d);
-    const diffTime = Math.abs(date2.getMilliseconds() - date1.getMilliseconds()); // milliseconds
+    // If date is invalid, return 0 to keep the message safe, or handle appropriately
+    if (isNaN(date2.getTime())) return 0;
+
+    const diffTime = Math.abs(date2.getTime() - date1.getTime()); // milliseconds
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     return diffDays;
@@ -238,7 +241,7 @@ export function CoreProvider({ children }) {
     });
   }
 
-  const markMessageAsRead = (id: number) => {
+  const markMessageAsRead = (id) => {
 
     const messageStorage = '@schoolapp:messages:' + branchid;
     axios.post('/markasread', { id, role }).then((response) => {
@@ -258,6 +261,113 @@ export function CoreProvider({ children }) {
     })
   };
 
+  const fetchCategories = () => {
+    axios.get('/getcategories', { params: { branchid } })
+      .then(response => {
+        // Dispatch to state if needed, but for now we might just log or handle in component
+        // If Home.js used it, it probably updated some state.
+        // Looking at CoreContext state, there is no categories state, but we can add if needed.
+        // For now, I will just replicate the call.
+      });
+  };
+
+  const checkFcmToken = (token) => {
+    // const owner = getState().core.phone; // In context we have phone
+    // const role = getState().core.role;
+    // const branchid = getState().core.branchid;
+    // console.log('token', token);
+    axios.post('/checkfcmtoken', { token, owner: phone, role, branchid });
+  };
+
+  const checkStudentAttendance = (redirect) => {
+    // const branchid = getState().core.branchid;
+    // const enrid = getState().core.id;
+    axios.get('checkstudentattendancestatus', { params: { branchid, enrid: id, action: redirect } }).then(response => {
+      // This updated ATTENDANCE_STATUS in Redux.
+      // If we need this data, we should probably store it in local state or return it.
+      // For now, I'm just porting the side effect.
+      // Actions.studentCards() was called if unmarked/absent && redirect === 'yes'
+      if ((response.data.status === 'unmarked' || response.data.status === 'absent') && redirect === 'yes') {
+        // Navigation not available here directly, might need to handle in component
+      }
+    });
+  };
+
+  const addAllEnqiryNo = () => {
+    // const phone = getState().core.phone;
+    // const branchid = getState().core.branchid;
+    axios.get('/addallenquiryno', { params: { phone, branchid } })
+      .then(async (response) => {
+        const { test, enqs } = response.data;
+        try {
+          const newregnos = test;
+          setEnquiries(enqs); // Assuming we can use the state 'enquiries' from CoreContext line 54
+          // And update 'id' if needed similar to redux logic
+          const value = await AsyncStorage.getItem('@schoolapp:core');
+          if (value !== null) {
+            const core = JSON.parse(value);
+            const newValue = { ...core, id: newregnos, branchid: branchid };
+            // dispatch(setCoreValues(newValue)); -> setId, setBranchid in Context
+            setId(newregnos);
+            setBranchid(branchid);
+
+            // also should update storage
+            try {
+              await AsyncStorage.setItem('@schoolapp:core', JSON.stringify(newValue));
+            } catch (error) { }
+          }
+
+        } catch (error) {
+          console.log(error);
+        }
+      });
+  };
+
+  const addAllRegistrationNo = () => {
+    // const phone = getState().core.phone; // phone from context
+    // const branchid = getState().core.branchid; // branchid from context
+    // const regnos = getState().core.id; // id from context
+
+    axios.get('/addallregistrationno', { params: { phone, branchid } })
+      .then(async (response) => {
+        const { test, testt, email } = response.data;
+
+        if (id.length !== test.length) { // id is regnos
+          const diffKey = '@schoolapp:messages:' + branchid;
+          try {
+            await AsyncStorage.removeItem(diffKey);
+          } catch (error) {
+          }
+        }
+
+        try {
+          const newregnos = test;
+          const newschonos = testt;
+          const emails = email;
+          // Value reading from async storage might be redundant if we trust checks?
+          // keeping implementation consistent
+          const value = await AsyncStorage.getItem('@schoolapp:core');
+          if (value !== null) {
+            const core = JSON.parse(value);
+            const newValue = { ...core, id: newregnos, branchid: branchid, scholars: newschonos, emails: emails };
+            // dispatch(setCoreValues(newValue)); -> context setters
+            setId(newregnos);
+            setBranchid(branchid);
+            setScholars(newschonos);
+            setEmails(emails);
+
+            try {
+              await AsyncStorage.setItem('@schoolapp:core', JSON.stringify(newValue));
+            } catch (error) {
+              // Error saving data
+            }
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      });
+  };
+
 
   const fetchSqlMessages = () => {
 
@@ -265,9 +375,9 @@ export function CoreProvider({ children }) {
 
   }
 
-  const loadSqlMessages_3 = () => {
+  const loadSqlMessages_3 = async () => {
 
-    const value = localStorage.getItem('@schoolapp:core');
+    const value = await AsyncStorage.getItem('@schoolapp:core');
     const ls = JSON.parse(value);
 
     const owner = phone ? phone : ls?.phone;
@@ -305,8 +415,6 @@ export function CoreProvider({ children }) {
               const mdate = um.dat.split(' ')[0];
               if (todayDiff(mdate) <= 30) return um;
             });
-
-            //   console.log('homePageMessages', homePageMessages);
 
             // console.log('New Messages', allMessages);
 
@@ -349,8 +457,8 @@ export function CoreProvider({ children }) {
 
   };
 
-  const getSchoolData = () => {
-    const value = localStorage.getItem('@schoolapp:core');
+  const getSchoolData = async () => {
+    const value = await AsyncStorage.getItem('@schoolapp:core');
     const ls = JSON.parse(value);
     const br = branchid ? branchid : ls?.branchid;
 
@@ -379,9 +487,9 @@ export function CoreProvider({ children }) {
   };
 
 
-  const getAllowedTabs = () => {
+  const getAllowedTabs = async () => {
 
-    const value = localStorage.getItem('@schoolapp:core');
+    const value = await AsyncStorage.getItem('@schoolapp:core');
     const ls = JSON.parse(value);
     const ro = ls?.role;
     const br = branchid ? branchid : ls?.branchid;
@@ -427,10 +535,10 @@ export function CoreProvider({ children }) {
 
   }
 
-  const checkUserValidity = (history) => {
+  const checkUserValidity = async (history) => {
 
 
-    const value = localStorage.getItem('@schoolapp:core');
+    const value = await AsyncStorage.getItem('@schoolapp:core');
     const ls = JSON.parse(value);
 
     const ph = phone ? phone : ls?.phone;
@@ -489,7 +597,7 @@ export function CoreProvider({ children }) {
                     const diffKey = '@schoolapp:messages:' + br;
 
                     try {
-                      localStorage.removeItem(diffKey);
+                      await AsyncStorage.removeItem(diffKey);
                     } catch (error) {
                     }
                   }
@@ -498,7 +606,7 @@ export function CoreProvider({ children }) {
                     const newregnos = test1;
                     const newschonos = testt;
                     const emails = email;
-                    const value = localStorage.getItem('@schoolapp:core');
+                    const value = await AsyncStorage.getItem('@schoolapp:core');
                     if (value !== null) {
                       const core1 = JSON.parse(value);
                       const newValue = { ...core1, id: newregnos, branchid: br, scholars: newschonos, emails: emails };
@@ -508,7 +616,7 @@ export function CoreProvider({ children }) {
                       setEmails(emails);
 
 
-                      localStorage.setItem('@schoolapp:core', JSON.stringify(newValue));
+                      await AsyncStorage.setItem('@schoolapp:core', JSON.stringify(newValue));
                       //Actions.myProfile();
 
                     }
@@ -630,9 +738,9 @@ export function CoreProvider({ children }) {
   };
 
 
-  const getAllClasses = () => {
+  const getAllClasses = async () => {
 
-    const value = localStorage.getItem('@schoolapp:core');
+    const value = await AsyncStorage.getItem('@schoolapp:core');
     const ls = JSON.parse(value);
     const ro = ls?.role;
     const br = branchid ? branchid : ls?.branchid;
@@ -671,7 +779,7 @@ export function CoreProvider({ children }) {
   };
 
 
-  const showToastMessage = (m: string) => {
+  const showToastMessage = (m) => {
     setToastMessage(m);
     setIsToastOpen(true);
   }
@@ -789,6 +897,41 @@ export function CoreProvider({ children }) {
 
 
 
+  const processConcessionRequest = async (requestId, action) => {
+    try {
+      const response = await axios.post('/process-concession', {
+        id: requestId,
+        action,
+        owner: phone,
+        branchid
+      });
+      if (response.data.message !== 'error') {
+        updateConcessionMessage(requestId, action);
+        return true;
+      }
+    } catch (e) { console.log(e); }
+    return false;
+  };
+
+  const processReceiptCancelRequest = async (requestId, action, content, by) => {
+    try {
+      const response = await axios.post('/process-receipt', {
+        id: requestId,
+        action: action,
+        owner: phone,
+        branchid,
+        content,
+        by
+      });
+      const result = response.data.message;
+      if (result !== 'error') {
+        updateConcessionMessage(requestId, action);
+        return true;
+      }
+    } catch (e) { console.log(e); }
+    return false;
+  };
+
   return <CoreContext.Provider value={{
     id,
     isLoggedIn,
@@ -811,6 +954,11 @@ export function CoreProvider({ children }) {
     getSchoolData,
     checkUserValidity,
     messages,
+    fetchCategories,
+    checkFcmToken,
+    checkStudentAttendance,
+    addAllEnqiryNo,
+    addAllRegistrationNo,
     fetchSqlMessages,
     markMessageAsRead,
     deleteMessage,
@@ -861,7 +1009,10 @@ export function CoreProvider({ children }) {
     searchStudentsByClass,
     filterStudent,
     months,
-    getGroupBranches
+    getGroupBranches,
+
+    processConcessionRequest,
+    processReceiptCancelRequest
 
   }}>{children}</CoreContext.Provider>;
 }

@@ -6,15 +6,41 @@ export const StyleContext = createContext();
 export function StyleProvider({ children }) {
 
     const blackColor = '#000';
-    const mainButtonColor = '#6a00ff';
+    const mainButtonColor = '#5a45d4'; // Updated to Admin primary
     const mainTextColorDark = '#4a00e0';
     const mainTextColor = '#fff';
-    const mainBackgroundGradient = ['#8e2de2', '#4a00e0'];
+    const mainBackgroundGradient = ['#5a45d4', '#8562ff']; // Admin Gradient
+
+    const colors = {
+        primary: '#5a45d4',
+        secondary: '#8562ff',
+        success: '#388e3c',
+        error: '#d32f2f',
+        warning: '#fbc02d',
+        info: '#1976d2',
+        purple: '#9c27b0',
+        pink: '#e91e63',
+        white: '#fff',
+        grey: '#ddd',
+        darkGrey: '#555',
+    };
+
     const background = {
         flex: 1,
         width: '100%',
         height: '100%',
+        backgroundColor: '#fff',
     };
+
+    // Header Style container
+    const headerContainer = {
+        paddingTop: Platform.OS === 'android' ? 40 : 24,
+        paddingBottom: 24,
+        paddingHorizontal: 20,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    };
+
     const container = {
         flexGrow: 1,
         justifyContent: 'center',
@@ -22,31 +48,35 @@ export function StyleProvider({ children }) {
         paddingHorizontal: 20,
         paddingVertical: 30,
     };
+
+    // Updated Card to match featureBox
     const card = {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: '#fff',
         borderRadius: 20,
-        padding: 30,
-        width: '100%',
-        maxWidth: 420,
+        padding: 20,
+        marginVertical: 10,
         ...Platform.select({
             ios: {
-                shadowColor: '#4a00e0',
-                shadowOffset: { width: 0, height: 15 },
-                shadowOpacity: 0.3,
-                shadowRadius: 20,
+                shadowColor: '#a1887f',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.15,
+                shadowRadius: 3,
             },
             android: {
-                elevation: 10,
+                elevation: 3,
             },
         }),
+        borderWidth: 1,
+        borderColor: '#eee', // Subtle border
     };
+
     const headerTitle = {
-        fontSize: 30,
-        fontWeight: '900',
-        textAlign: 'center',
-        marginBottom: 8,
-        color: mainButtonColor,
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: '#fff',
+        marginBottom: 4,
     };
+
     const subTitle = {
         textAlign: 'center',
         fontSize: 18,
@@ -101,7 +131,7 @@ export function StyleProvider({ children }) {
       padding: 12,
       borderRadius: 12,
       marginBottom: 20,
-      backgroundColor: 'rgba(106, 0, 255, 0.15)',
+        backgroundColor: 'rgba(90, 69, 212, 0.1)', // #5a45d4 with opacity
     };
     const infoText = {
       marginLeft: 10,
@@ -121,7 +151,9 @@ export function StyleProvider({ children }) {
         borderRadius: 14,
         overflow: 'hidden',
     };
-    const picker = {};
+    const picker = {}; // Re-added deleted definition
+    const titleColor = '#4a00e0'; // Global Title Color (Deep Indigo)
+
     return (
         <StyleContext.Provider value={{
             mainButtonColor,
@@ -129,11 +161,14 @@ export function StyleProvider({ children }) {
             mainTextColorDark,
             blackColor,
             mainBackgroundGradient,
+            colors,
+            headerContainer,
             background,
             container,
             card,
             headerTitle,
             subTitle,
+            titleColor, // Exported Global Title Color
             mobileInputContainer,
             label,
             input,
