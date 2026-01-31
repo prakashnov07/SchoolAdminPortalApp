@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { CoreContext } from '../context/CoreContext';
 
 const adminPanelStyles = {
   listContent: {
@@ -187,6 +188,7 @@ function AdminHeader({ onLogout }) {
 }
 
 export default function AdminPanelScreen({ navigation }) {
+  const coreContext = React.useContext(CoreContext);
   const handleLogout = () => {
     Alert.alert(
       'Logout',
@@ -197,6 +199,7 @@ export default function AdminPanelScreen({ navigation }) {
           text: 'Logout',
           style: 'destructive',
           onPress: () => {
+            coreContext.deleteAsyncData(coreContext?.branchid);
             navigation.reset({
               index: 0,
               routes: [{ name: 'MobileNumberVerification' }],

@@ -9,9 +9,12 @@ import {
   Platform,
   Keyboard,
   Alert,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CoreContext } from '../context/CoreContext';
 
 const mainButtonColor = '#6a00ff';
 const mainTextColor = '#fff';
@@ -44,8 +47,10 @@ const styles = {
 
 export default function OTPVerificationScreen({ route, navigation }) {
   const { mobile, branch } = route.params;
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [otp, setOtp] = useState(['', '', '', '', '']);
   const inputsRef = useRef([]);
+
+  const coreContext = React.useContext(CoreContext);
 
   useEffect(() => {
     // Focus first input after component is fully mounted
@@ -54,12 +59,12 @@ export default function OTPVerificationScreen({ route, navigation }) {
         inputsRef.current[0].focus();
       }
     };
-    
+
     // Use a more reliable way to focus after render
     const timer = requestAnimationFrame(() => {
       requestAnimationFrame(focusFirstInput);
     });
-    
+
     return () => cancelAnimationFrame(timer);
   }, []);
 
@@ -78,17 +83,40 @@ export default function OTPVerificationScreen({ route, navigation }) {
 
   const submitOtp = () => {
     const otpCode = otp.join('');
-    if (otpCode.length !== 6) {
-      Alert.alert('Invalid OTP', 'Please enter the 6-digit OTP.');
+    if (otpCode.length !== 5) {
+      Alert.alert('Invalid OTP', 'Please enter the 5-digit OTP.');
       return;
     }
     Keyboard.dismiss();
-    Alert.alert('Success', `Logged in with mobile: ${mobile} on branch: ${branch}`);
-    navigation.replace('MainTabs');
+    const phone = mobile
+    const branchid = branch;
+    // console.log(branchid);
+    axios.get('/verify-staff-otp', { params: { otp: otpCode, phone, branchid } })
+      .then(async (response) => {
+        const { test } = response.data;
+         if (test.verified === 'ok') {
+        try {
+          await AsyncStorage.setItem('@schoolapp:core', JSON.stringify(test));
+          coreContext.checkIfVerified();
+          Alert.alert('Success', `Logged in with mobile: ${mobile} on branch: ${branch}`);
+          navigation.replace('MainTabs');
+        } catch (error) {
+          // Error saving data
+          //  console.log('error');
+        }
+      } else {
+        Alert.alert('Verification Failed', 'The OTP you entered is incorrect. Please try again.');
+      }
+      })
+      .catch(error => {
+        console.log(error);
+      });
+
   };
 
   const resendOtp = () => {
-    Alert.alert('OTP Resent', `OTP resent to ${mobile}`);
+    // Alert.alert('OTP Resent', `OTP resent to ${mobile}`);
+    navigation.navigate('MobileNumberVerification', { branch, mobile });
   };
 
   return (
@@ -103,7 +131,7 @@ export default function OTPVerificationScreen({ route, navigation }) {
             <Icon name="shield-lock" size={48} color={mainTextColor} />
           </View>
           <Text style={styles.secureLoginTitle}>Secure Login</Text>
-          <Text style={styles.secureLoginSubtitle}>Goldentots School Portal</Text>
+          <Text style={styles.secureLoginSubtitle}>SiddhantaIT School Portal</Text>
           <Text style={styles.otpInstruction}>
             Mobile Number Verification{'\n'}We've sent a verification code to your registered mobile number
           </Text>
@@ -121,7 +149,7 @@ export default function OTPVerificationScreen({ route, navigation }) {
                     inputsRef.current[index] = ref;
                   }
                 }}
-                returnKeyType={index === 5 ? 'done' : 'next'}
+                returnKeyType={index === 4 ? 'done' : 'next'}
                 textAlign="center"
                 autoCorrect={false}
                 autoComplete="off"

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext } from 'react';
+import React, { useState, useRef, useContext, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,75 +17,26 @@ import { StyleContext } from '../context/StyleContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
-
-const branches = [
-  { label: 'Science', value: 'science' },
-  { label: 'Commerce', value: 'commerce' },
-  { label: 'Arts', value: 'arts' },
-];
+import axios from 'axios';
+import Toast from 'react-native-toast-message';
+import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CoreContext } from '../context/CoreContext';
 
 
 
-function BranchPicker({ selectedValue, onValueChange, blackColor, branchPickerStyles }) {
-  const [modalVisible, setModalVisible] = useState(false);
 
-  const handleSelect = (value) => {
-    onValueChange(value);
-    setModalVisible(false);
-  };
-
-  const selectedLabel = branches.find((b) => b.value === selectedValue)?.label || 'Select a Branch...';
-
-  return (
-    <View>
-      <TouchableOpacity
-        style={branchPickerStyles?.pickerButton}
-        onPress={() => setModalVisible(true)}
-        activeOpacity={0.7}
-      >
-        <Text
-          style={[
-            branchPickerStyles?.pickerButtonText,
-            selectedValue ? { color: blackColor } : { color: '#999' }
-          ]}
-        >
-          {selectedLabel}
-        </Text>
-        <Icon name="menu-down" size={24} color={blackColor} />
-      </TouchableOpacity>
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-          <View style={branchPickerStyles?.modalOverlay}>
-            <View style={branchPickerStyles?.modalContent}>
-              <RNFlatList
-                data={branches}
-                keyExtractor={(item) => item.value}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={branchPickerStyles?.modalItem}
-                    onPress={() => handleSelect(item.value)}
-                  >
-                    <Text style={branchPickerStyles?.modalItemText}>{item.label}</Text>
-                  </TouchableOpacity>
-                )}
-              />
-            </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
-    </View>
-  );
-}
 
 export default function MobileNumberVerificationScreen({ navigation }) {
+
+  const coreContext = useContext(CoreContext);
+
   const [mobile, setMobile] = useState('');
   const [branch, setBranch] = useState('');
+  const [branches, setBranches] = useState([]);
+  const [searchText, setSearchText] = useState('');
+  const [showBranchList, setShowBranchList] = useState(false);
+  const [selectedBranchName, setSelectedBranchName] = useState('');
   const inputRef = useRef(null);
 
   const styleContext = useContext(StyleContext);
@@ -95,7 +46,7 @@ export default function MobileNumberVerificationScreen({ navigation }) {
   }
 
 
-const {blackColor, mainButtonColor, mainTextColorDark, mainTextColor, mainBackgroundGradient} = styleContext;
+  const { blackColor, mainButtonColor, mainTextColorDark, mainTextColor, mainBackgroundGradient } = styleContext;
 
   const branchPickerStyles = {
     pickerButton: {
@@ -249,6 +200,173 @@ const {blackColor, mainButtonColor, mainTextColorDark, mainTextColor, mainBackgr
       color: mainButtonColor,
     },
   };
+
+  useEffect(() => {
+    async function initializeAuth() {
+      try {
+        await setAuthHeader();
+      } catch (error) {
+        console.error('setAuthHeader failed:', error);
+      }
+
+      try {
+        coreContext.checkIfVerified(navigation);
+      } catch (error) {
+        console.error('checkIfVerified failed:', error);
+      }
+
+      try {
+        coreContext.getGroupBranches();
+      } catch (error) {
+        console.error('getGroupBranches failed:', error);
+      }
+
+      getAllBranches();
+    }
+    initializeAuth();
+  }, []);
+
+  const setAuthHeader = async () => {
+    try {
+      const branchAppId = await AsyncStorage.getItem('branchAppId');
+      if (branchAppId) {
+        axios.defaults.headers.common.Authorization = JSON.parse(branchAppId);
+      }
+    } catch (error) {
+      console.error('AsyncStorage error:', error);
+    }
+  };
+
+  const getAllBranches = async () => {
+    try {
+      console.log('Fetching branches...');
+      const response = await axios.get('/getallbranches', {
+        params: { fcm_project: 'noticeboard-1' }
+      });
+      console.log('Branches response:', response.data.allbranches[0].branchname);
+      if (response.data && response.data.allbranches) {
+        setBranches(response.data.allbranches);
+      }
+    } catch (error) {
+      console.error('Error fetching branches:', error.message);
+      Alert.alert('Error', 'Failed to load branches. Please check your connection.');
+    }
+  };
+
+
+  function BranchPicker({ selectedValue, onValueChange, blackColor, branchPickerStyles, branches }) {
+    const [modalVisible, setModalVisible] = useState(false);
+    const [localSearchText, setLocalSearchText] = useState('');
+
+    const handleSelect = async (branchItem) => {
+      onValueChange(branchItem.branchid);
+      axios.defaults.headers.common.Authorization = branchItem.appid;
+      await AsyncStorage.setItem('branchAppId', JSON.stringify(branchItem.appid));
+
+      setLocalSearchText('');
+      setModalVisible(false);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Branch Selected',
+        text2: `You have selected ${branchItem.branchname}`,
+      });
+    };
+
+    const handleModalClose = () => {
+      setModalVisible(false);
+      setLocalSearchText('');
+    };
+
+    const getFilteredBranches = () => {
+      if (!localSearchText) {
+        return [];
+      }
+
+      if (branch) {
+        return branches?.filter(branch => branch.branchid === branch);
+      }
+
+      return branches?.filter(branch =>
+        branch.branchname.toLowerCase().includes(localSearchText.toLowerCase())
+      );
+    };
+
+    const selectedLabel = branches.find((b) => b.branchid === selectedValue)?.branchname || 'Select a Branch...';
+
+    return (
+      <View>
+        <TouchableOpacity
+          style={branchPickerStyles?.pickerButton}
+          onPress={() => { setModalVisible(true); setBranch(''); setSearchText(''); }}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={[
+              branchPickerStyles?.pickerButtonText,
+              selectedValue ? { color: blackColor } : { color: '#999' }
+            ]}
+          >
+            {selectedLabel}
+          </Text>
+          <Icon name="menu-down" size={24} color={blackColor} />
+        </TouchableOpacity>
+        <Modal
+          visible={modalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={handleModalClose}
+        >
+          <TouchableWithoutFeedback onPress={handleModalClose}>
+            <View style={branchPickerStyles?.modalOverlay}>
+              <TouchableWithoutFeedback>
+                <View style={branchPickerStyles?.modalContent}>
+                  <View style={{
+                    backgroundColor: '#f0f0f0',
+                    paddingHorizontal: 10,
+                    paddingVertical: 8,
+                    borderBottomWidth: 1,
+                    borderBottomColor: '#ddd'
+                  }}>
+                    <TextInput
+                      placeholder="Type to search your branch ..."
+                      onChangeText={setLocalSearchText}
+                      value={localSearchText}
+                      style={{
+                        fontSize: 16,
+                        paddingVertical: 8,
+                        paddingHorizontal: 10,
+                        backgroundColor: '#fff',
+                        borderRadius: 8,
+                        borderWidth: 1,
+                        borderColor: '#ccc'
+                      }}
+                      placeholderTextColor="#999"
+                    />
+                  </View>
+                  <RNFlatList
+                    keyboardShouldPersistTaps='always'
+                    data={getFilteredBranches()}
+                    keyExtractor={(item) => item.branchid}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={branchPickerStyles?.modalItem}
+                        onPress={() => handleSelect(item)}
+                      >
+                        <Text style={branchPickerStyles?.modalItemText}>{item.branchname}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      </View>
+    );
+  }
+
+
   const sendOTP = () => {
     Keyboard.dismiss();
     if (!mobile.match(/^[0-9]{10}$/)) {
@@ -259,7 +377,43 @@ const {blackColor, mainButtonColor, mainTextColorDark, mainTextColor, mainBackgr
       Alert.alert('Select Branch', 'Please select your branch.');
       return;
     }
-    navigation.navigate('OTPVerification', { mobile, branch });
+    Toast.show({
+          type: 'info',
+          text1: 'verifying mobile number',
+          text2: 'Please wait, we are sending an OTP on your registered mobile number ..',
+        });
+
+    axios.get('/send-staff-otp', { params: { phone: mobile, branchid : branch, stutype : 'existing'} })
+      .then((response) => {
+        const status = response.data.result;
+        const otp = response.data.hasOtp;
+        const branchid = response.data.userbranchid;
+        console.log(status); console.log(otp);
+        if (status === 'ok') {
+          coreContext.setOtp(otp);
+          coreContext.setBranchid(branchid);
+          coreContext.setVerified('ok');
+           Toast.show({
+          type: 'success',
+          text1: 'OTP sent',
+          text2: 'Check OTP on your WHATSAPP / SMS',
+        });
+         navigation.replace('OTPVerification', { mobile, branch });
+        } else {
+          coreContext.setVerified('fail');
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'Mobile number not found in the school records. Please contact school admin.',
+          });
+
+          Alert.alert('Error', 'Mobile number not found in the school records. Please contact school admin.');
+
+        }
+      })
+      .catch(error => {
+        console.log(error.message);
+      });
   };
 
   return (
@@ -283,7 +437,7 @@ const {blackColor, mainButtonColor, mainTextColorDark, mainTextColor, mainBackgr
               <View style={loginStyles.verificationCard}>
                 <Text style={loginStyles.headerTitle}>🎓 School Portal</Text>
                 <Text style={loginStyles.subTitle}>Welcome to Your Digital Campus</Text>
-                
+
                 <View style={loginStyles.mobileInputContainer}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
                     <Icon name="cellphone" size={18} color={mainButtonColor} />
@@ -304,57 +458,40 @@ const {blackColor, mainButtonColor, mainTextColorDark, mainTextColor, mainBackgr
                     onSubmitEditing={Keyboard.dismiss}
                   />
                 </View>
-                
+
                 <View style={loginStyles.branchPickerContainer}>
                   <Text style={loginStyles.label}>Select Your Branch</Text>
-                  {Platform.OS === 'ios' ? (
+                  {
                     blackColor && branchPickerStyles ? (
-                      <BranchPicker 
-                        selectedValue={branch} 
-                        onValueChange={setBranch} 
-                        blackColor={blackColor} 
-                        branchPickerStyles={branchPickerStyles} 
+                      <BranchPicker
+                        selectedValue={branch}
+                        onValueChange={setBranch}
+                        blackColor={blackColor}
+                        branchPickerStyles={branchPickerStyles}
+                        branches={branches}
                       />
                     ) : (
                       <Text>Loading...</Text>
                     )
-                  ) : (
-                    <View style={[loginStyles.pickerWrapper, { 
-                      backgroundColor: '#f7f0ff',
-                      borderWidth: 1,
-                      borderColor: blackColor,
-                      borderRadius: 14
-                    }]}>
-                      <Picker
-                        selectedValue={branch}
-                        onValueChange={(itemValue) => setBranch(itemValue)}
-                        style={[loginStyles.picker, { color: '#000' }]}
-                        dropdownIconColor="#000"
-                      >
-                        <Picker.Item label="Select a Branch..." value="" color="#999" />
-                        {branches.map((b) => (
-                          <Picker.Item key={b.value} label={b.label} value={b.value} color="#000" />
-                        ))}
-                      </Picker>
-                    </View>
-                  )}
+                  }
                 </View>
-                
+
                 <TouchableOpacity style={loginStyles.sendOTPButton} onPress={sendOTP}>
                   <Text style={loginStyles.sendOTPButtonText}>Send OTP</Text>
                 </TouchableOpacity>
-                
+
                 <View style={loginStyles.infoBox}>
                   <Icon name="lock" size={16} color={mainButtonColor} />
                   <Text style={loginStyles.infoText}>Your information is secure and encrypted</Text>
                 </View>
-                
+
                 <Text style={loginStyles.footerText}>Powered by Siddhanta Technology Services</Text>
               </View>
             </ScrollView>
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </SafeAreaView>
+      <Toast />
     </LinearGradient>
   );
 }

@@ -8,8 +8,8 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { CoreContext } from '../context/CoreContext';
 
@@ -17,9 +17,9 @@ const blackColor = '#000';
 const mainTextColorDark = '#4a00e0';
 
 const styles = {
-  studentPanelHeader: { paddingHorizontal: 15, paddingVertical: 8 },
+  studentPanelHeader: { paddingHorizontal: 15, paddingTop: 0, paddingBottom: 8 },
   studentUserName: { fontSize: 18, fontWeight: '600', marginBottom: 14, marginTop: 6, color: blackColor },
-  searchBox: { flexDirection: 'row', borderRadius: 25, overflow: 'hidden', alignItems: 'center', marginTop: 18, backgroundColor: '#fff' },
+  searchBox: { flexDirection: 'row', borderRadius: 25, overflow: 'hidden', alignItems: 'center', backgroundColor: '#fff' },
   searchInput: { flex: 1, paddingHorizontal: 15, paddingVertical: 8, fontSize: 16, color: blackColor },
   searchButton: { padding: 10, borderTopRightRadius: 25, borderBottomRightRadius: 25, backgroundColor: '#ddd' },
   studentPanelBody: { flex: 1, padding: 15, backgroundColor: '#fff' },
@@ -47,15 +47,19 @@ const styles = {
 };
 
 export default function MessagesScreen({ navigation }) {
-  const { messages } = useContext(CoreContext);
+  const coreContext = useContext(CoreContext);
+  const { messages } = coreContext;
   const [searchText, setSearchText] = useState('');
 
   // Safety check for messages
   const safeMessages = messages || [];
 
   const filteredPosts = safeMessages.filter((post) =>
-    post?.title?.toLowerCase().includes(searchText.toLowerCase())
+    post?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
+    post?.description?.toLowerCase().includes(searchText.toLowerCase())
   );
+
+
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
@@ -75,7 +79,6 @@ export default function MessagesScreen({ navigation }) {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
         <View style={styles.studentPanelHeader}>
-          <Text style={styles.studentUserName}>Rahul Sharma - Class 10-A</Text>
           <View style={styles.searchBox}>
             <TextInput
               placeholder="Search Old Messages"
@@ -92,9 +95,12 @@ export default function MessagesScreen({ navigation }) {
         <View style={styles.studentPanelBody}>
           <Text style={styles.studentPanelTitle}>Messages</Text>
           <View style={styles.schoolInfoBox}>
-            <Icon name="school" size={36} color={blackColor} />
+            <Image 
+              source={{ uri: coreContext.branch?.logo || 'https://via.placeholder.com/150' }} 
+              style={{ width: 36, height: 36, borderRadius: 18 }} 
+            />
             <View style={{ marginLeft: 12 }}>
-              <Text style={styles.schoolName}>Goldentots</Text>
+              <Text style={styles.schoolName}>{coreContext.branch?.branchname || 'SiddhantaIT'}</Text>
               <Text style={styles.schoolSubtitle}>School Management Portal</Text>
             </View>
           </View>

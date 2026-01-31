@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import axios from 'axios';
 
 import MobileNumberVerificationScreen from './screens/MobileNumberVerificationScreen';
 import OTPVerificationScreen from './screens/OTPVerificationScreen';
@@ -12,6 +13,12 @@ import {StyleProvider} from './context/StyleContext';
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
+
+import Toast from 'react-native-toast-message';
+
+const security = 'sCHoOl-*&^et11@0o9<<$pdXxzrWlY*#';
+axios.defaults.baseURL = 'https://schoolappdev.siddhantait.com'; // Replace with your actual API URL
+axios.defaults.headers.common.Authorization = security;
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
