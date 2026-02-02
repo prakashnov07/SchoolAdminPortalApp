@@ -29,7 +29,7 @@ export function StyleProvider({ children }) {
         flex: 1,
         width: '100%',
         height: '100%',
-        backgroundColor: '#fff',
+        backgroundColor: '#f4e0ff',
     };
 
     // Header Style container
@@ -47,6 +47,7 @@ export function StyleProvider({ children }) {
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingVertical: 30,
+        backgroundColor: '#f4e0ff',
     };
 
     // Updated Card to match featureBox
@@ -67,7 +68,7 @@ export function StyleProvider({ children }) {
             },
         }),
         borderWidth: 1,
-        borderColor: '#eee', // Subtle border
+        borderColor: blackColor, // Consistent black border
     };
 
     const headerTitle = {
@@ -81,7 +82,7 @@ export function StyleProvider({ children }) {
         textAlign: 'center',
         fontSize: 18,
         marginBottom: 30,
-        color: mainButtonColor,
+        color: blackColor,
     };
     const mobileInputContainer = {
         marginBottom: 20,
@@ -90,35 +91,30 @@ export function StyleProvider({ children }) {
         fontWeight: '700',
         marginBottom: 8,
         fontSize: 16,
-        color: mainButtonColor,
+        color: blackColor,
     };
+
+    // Updated Input to match SendMessages theme
     const input = {
+        width: '100%',
         borderWidth: 1,
-        borderRadius: 14,
+        borderRadius: 16,
         paddingHorizontal: 18,
         paddingVertical: 14,
-        fontSize: 18,
-        backgroundColor: '#f7f0ff',
-        color: mainTextColorDark,
-        borderColor: mainButtonColor,
+        fontSize: 16,
+        backgroundColor: '#f4e0ff',
+        color: blackColor,
+        borderColor: blackColor,
     };
+
     const button = {
         paddingVertical: 16,
-        borderRadius: 18,
+        borderRadius: 24,
         alignItems: 'center',
         marginBottom: 20,
         backgroundColor: mainButtonColor,
-        ...Platform.select({
-            ios: {
-                shadowColor: '#6a00ff',
-                shadowOffset: { width: 0, height: 5 },
-                shadowOpacity: 0.6,
-                shadowRadius: 10,
-            },
-            android: {
-                elevation: 6,
-            },
-        }),
+        elevation: 8,
+        overflow: 'hidden', 
     };
     const buttonText = {
       fontSize: 20,
@@ -147,11 +143,80 @@ export function StyleProvider({ children }) {
     const branchPickerContainer = {
         marginBottom: 28,
     };
+
+    // Updated Picker styles
     const pickerWrapper = {
-        borderRadius: 14,
+        width: '100%',
+        borderRadius: 16,
         overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: blackColor,
+        backgroundColor: '#d6bee7',
     };
-    const picker = {}; // Re-added deleted definition
+    const picker = {
+        height: 50,
+        color: blackColor
+    };
+    // Migrated SendMessagesScreen Styles
+    const pageTitle = {
+        fontSize: 28,
+        fontWeight: '900',
+        marginBottom: 24,
+        textAlign: 'center',
+        color: blackColor,
+    };
+    const attachmentContainer = { flexDirection: 'row', marginTop: 18, marginBottom: 10, justifyContent: 'space-between' };
+    const attachmentOption = {
+        flex: 1,
+        marginHorizontal: 6,
+        paddingVertical: 14,
+        borderRadius: 16,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderColor: blackColor,
+    };
+    const attachmentOptionSelected = {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+    };
+    const attachmentOptionText = { marginTop: 6, fontWeight: '600', fontSize: 16, color: blackColor };
+    const attachmentInfo = { marginTop: 8, fontStyle: 'italic', fontSize: 14, textAlign: 'center', color: blackColor };
+
+    const pickerButton = {
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 16,
+        borderWidth: 1,
+        marginBottom: 12,
+        borderColor: blackColor,
+        backgroundColor: '#d6bee7',
+    };
+    const pickerButtonText = { fontSize: 16, color: blackColor };
+
+    // Picker Modal Styles
+    const pickerModalOverlay = {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        justifyContent: 'center',
+        paddingHorizontal: 40,
+    };
+    const pickerModalContent = { backgroundColor: '#fff', borderRadius: 16, padding: 20 };
+    const pickerModalTitle = { fontSize: 18, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' };
+    const pickerModalItem = { paddingVertical: 12, paddingHorizontal: 10, borderBottomColor: '#ddd', borderBottomWidth: 1 };
+    const pickerModalItemSelected = { backgroundColor: '#d1bee7' };
+    const pickerModalItemText = { fontSize: 16, color: '#000' };
+    const pickerModalItemTextSelected = { fontWeight: 'bold', color: mainTextColor };
+    const pickerModalButtons = { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 };
+    const pickerModalButton = { flex: 1, alignItems: 'center', paddingVertical: 10 };
+    const pickerModalButtonText = { fontSize: 16, fontWeight: 'bold', color: mainTextColor };
+
     const titleColor = '#4a00e0'; // Global Title Color (Deep Indigo)
 
     return (
@@ -168,13 +233,33 @@ export function StyleProvider({ children }) {
             card,
             headerTitle,
             subTitle,
-            titleColor, // Exported Global Title Color
+            pageTitle, // Added
+            titleColor,
             mobileInputContainer,
             label,
             input,
+            button,
+            buttonText,
             branchPickerContainer,
             pickerWrapper,
             picker,
+            pickerButton, // Added
+            pickerButtonText, // Added
+            attachmentContainer, // Added
+            attachmentOption, // Added
+            attachmentOptionSelected, // Added
+            attachmentOptionText, // Added
+            attachmentInfo, // Added
+            pickerModalOverlay, // Added
+            pickerModalContent, // Added
+            pickerModalTitle, // Added
+            pickerModalItem, // Added
+            pickerModalItemSelected, // Added
+            pickerModalItemText, // Added
+            pickerModalItemTextSelected, // Added
+            pickerModalButtons, // Added
+            pickerModalButton, // Added
+            pickerModalButtonText, // Added
         }}>
             {children}
         </StyleContext.Provider>

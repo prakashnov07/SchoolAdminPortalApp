@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CoreContext } from '../context/CoreContext';
+import { StyleContext } from '../context/StyleContext';
 
 const adminPanelStyles = {
   listContent: {
@@ -189,6 +190,8 @@ function AdminHeader({ onLogout }) {
 
 export default function AdminPanelScreen({ navigation }) {
   const coreContext = React.useContext(CoreContext);
+  const styleContext = React.useContext(StyleContext);
+
   const handleLogout = () => {
     Alert.alert(
       'Logout',
@@ -257,7 +260,7 @@ export default function AdminPanelScreen({ navigation }) {
     <SafeAreaView 
       style={{ 
         flex: 1, 
-        backgroundColor: '#fff',
+        backgroundColor: styleContext?.background?.backgroundColor || '#f4e0ff',
         paddingTop: Platform.OS === 'android' ? 0 : 0,
       }}
       edges={Platform.OS === 'ios' ? ['top', 'bottom'] : ['bottom']}

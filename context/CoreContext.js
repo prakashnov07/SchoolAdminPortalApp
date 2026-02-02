@@ -797,7 +797,7 @@ export function CoreProvider({ children }) {
   };
 
 
-  const getAllHolidays = (branchid: string) => {
+  const getAllHolidays = (branchid) => {
 
     axios.get('/fetchholidays', { params: { branchid } })
       .then((response) => {
@@ -933,6 +933,7 @@ export function CoreProvider({ children }) {
   };
 
   return <CoreContext.Provider value={{
+    owner: phone,
     id,
     isLoggedIn,
     phone,

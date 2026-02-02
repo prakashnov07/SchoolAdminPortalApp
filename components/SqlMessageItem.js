@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
-import { Text, View, Image, TouchableOpacity, Linking, Dimensions, Alert, useWindowDimensions, LayoutAnimation, Animated } from 'react-native';
+import { Text, View, Image, TouchableOpacity, Linking, Dimensions, Alert, useWindowDimensions, LayoutAnimation, Animated, Platform } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import ImageView from 'react-native-image-viewing'; // Replaces PhotoView
 import Hyperlink from 'react-native-hyperlink';
@@ -231,10 +231,14 @@ const SqlMessageItem = ({ item }) => {
 
   let content = item.concessionApprovalStatus ? item.content + ' : ' + approvalStatus : item.content;
   let by = '';
+  // Use context owner if available, otherwise phone, otherwise 'Admin'
+  const currentOwner = owner || context.phone || 'Admin';
+  const messageSender = name || 'User';
+
   if (role === 'admin' || role === 'super' || role === 'principal' || role === 'tech') {
-      by = ` By ${owner}, ${name}`;
+    by = ` By ${currentOwner}, ${messageSender}`;
   } else {
-      by = `By ${name}`;
+    by = `By ${messageSender}`;
   }
   const deliveryText = item.msg_type === 'declaration' ? 'Accepted on' : 'Read on';
   const tim = rtime ? `${deliveryText} ${rtime}` : '';
@@ -321,7 +325,22 @@ const SqlMessageItem = ({ item }) => {
         ...(styleContext?.card ? { ...styleContext.card, marginBottom: 15 } : { marginBottom: 15, backgroundColor: '#fff', padding: 15, borderRadius: 20 }) 
     }}>
       {/* Header */}
-      <View style={{ flexDirection: 'row', justifyContent: 'center', paddingTop: 4 }} >
+      <View style={{ alignItems: 'center', marginBottom: 2, marginTop: 4 }}>
+        <Text style={{
+          fontSize: 10,
+          color: '#888',
+          textTransform: 'uppercase',
+          letterSpacing: 1,
+          backgroundColor: '#f5f5f5',
+          paddingVertical: 2,
+          paddingHorizontal: 8,
+          borderRadius: 4,
+          overflow: 'hidden'
+        }}>
+          {(item.msg_type || 'General Notification').replace(/-/g, ' ')}
+        </Text>
+      </View>
+      <View style={{ flexDirection: 'row', justifyContent: 'center', paddingTop: 2 }} >
         <Text style={{ fontSize: 16, color: titleColor, fontWeight: 'bold' }}>
           {title}
         </Text>
@@ -456,6 +475,32 @@ const SqlMessageItem = ({ item }) => {
         imageIndex={viewerIndex}
         visible={isModalImageVisible}
         onRequestClose={() => setIsModalImageVisible(false)}
+        HeaderComponent={({ imageIndex }) => (
+          <View style={{
+            position: 'absolute',
+            top: 0,
+            width: '100%',
+            zIndex: 9999,
+            paddingTop: Platform.OS === 'android' ? 40 : 50, // Manual safe area
+            paddingHorizontal: 20,
+            alignItems: 'flex-end'
+          }}>
+            <TouchableOpacity
+              onPress={() => setIsModalImageVisible(false)}
+              style={{
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                borderRadius: 20,
+                padding: 8,
+                width: 40,
+                height: 40,
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <Icon name="close" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        )}
       />
     </Animated.View>
   );

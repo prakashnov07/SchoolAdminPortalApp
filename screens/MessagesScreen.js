@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useRef, useCallback } from 'react';
+import React, { useContext, useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,13 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { CoreContext } from '../context/CoreContext';
+import { StyleContext } from '../context/StyleContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import SqlMessageItem from '../components/SqlMessageItem'; // Import the new component
+import SqlMessageItem from '../components/SqlMessageItem';
 
 const blackColor = '#000';
 const mainTextColorDark = '#4a00e0';
@@ -24,13 +26,12 @@ const styles = {
   searchBox: { flexDirection: 'row', borderRadius: 25, overflow: 'hidden', alignItems: 'center', backgroundColor: '#fff' },
   searchInput: { flex: 1, paddingHorizontal: 15, paddingVertical: 8, fontSize: 16, color: blackColor },
   searchButton: { padding: 10, borderTopRightRadius: 25, borderBottomRightRadius: 25, backgroundColor: '#ddd' },
-  studentPanelBody: { flex: 1, padding: 15, backgroundColor: '#fff' },
+  studentPanelBody: { flex: 1, padding: 15, backgroundColor: '#f4e0ff' }, 
   studentPanelTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 12, alignSelf: 'center', color: blackColor },
   schoolInfoBox: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   schoolName: { fontSize: 18, fontWeight: 'bold', color: blackColor },
   schoolSubtitle: { fontSize: 14, color: mainTextColorDark },
   postsContainer: { flex: 1 },
-  // postCard styles removed as we are using SqlMessageItem, but keeping if needed for backup or other parts
   postHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   postTitle: { fontSize: 18, fontWeight: '700', marginLeft: 8, flexShrink: 1, color: blackColor },
   postDescription: { fontSize: 16, marginBottom: 12, color: mainTextColorDark },
@@ -41,6 +42,7 @@ const styles = {
 
 export default function MessagesScreen({ navigation }) {
   const coreContext = useContext(CoreContext);
+  const styleContext = useContext(StyleContext);
   const {
     messages,
     fetchSqlMessages,
@@ -60,10 +62,17 @@ export default function MessagesScreen({ navigation }) {
 
   const [searchText, setSearchText] = useState('');
 
+  // Auto-refresh when screen comes into focus (e.g. after sending a message)
+  useFocusEffect(
+    useCallback(() => {
+      fetchSqlMessages();
+    }, [fetchSqlMessages])
+  );
+
   // Initialization logic from Home.js
   useEffect(() => {
     checkUserValidity(navigation);
-    fetchSqlMessages();
+    // fetchSqlMessages(); // Moved to useFocusEffect
     getAllClasses();
     getAllSections();
     getSchoolData();
@@ -76,7 +85,6 @@ export default function MessagesScreen({ navigation }) {
     checkStudentAttendance('no'); // passing 'no' as default like in Home.js logic
     addAllEnqiryNo();
     addAllRegistrationNo();
-    // Intervals logic from Home.js omitted as it might be better handled differently or is specific to that implementation
   }, []);
 
   // Safety check for messages
@@ -84,9 +92,9 @@ export default function MessagesScreen({ navigation }) {
 
   const filteredPosts = safeMessages.filter((post) => {
     const term = searchText.toLowerCase();
-    const title = (post.title || '').toLowerCase();
-    const desc = (post.description || '').toLowerCase();
-    const content = (post.content || '').toLowerCase();
+    const title = String(post.title || '').toLowerCase();
+    const desc = String(post.description || '').toLowerCase();
+    const content = String(post.content || '').toLowerCase();
 
     return title.includes(term) || desc.includes(term) || content.includes(term);
   });
@@ -107,7 +115,7 @@ export default function MessagesScreen({ navigation }) {
   }, [navigation]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top', 'bottom']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f4e0ff' }} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -177,7 +185,7 @@ export default function MessagesScreen({ navigation }) {
             </View>
           </View>
           <FlatList
-            data={coreContext.messages}
+            data={filteredPosts}
             renderItem={renderItem}
             keyExtractor={(item, index) => item.id?.toString() || index.toString()}
             style={styles.postsContainer}
