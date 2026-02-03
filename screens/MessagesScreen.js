@@ -66,7 +66,7 @@ export default function MessagesScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       fetchSqlMessages();
-    }, [fetchSqlMessages])
+    }, [])
   );
 
   // Initialization logic from Home.js

@@ -5,6 +5,7 @@ import MobileNumberVerificationScreen from '../screens/MobileNumberVerificationS
 import OTPVerificationScreen from '../screens/OTPVerificationScreen';
 import MessagesScreen from '../screens/MessagesScreen';
 import SendMessagesScreen from '../screens/SendMessagesScreen';
+import MessageSettingsScreen from '../screens/MessageSettingsScreen';
 import AdminPanelScreen from '../screens/AdminPanelScreen';
 import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,6 +25,11 @@ function MessagesStack() {
         name="SendMessagesScreen"
         component={SendMessagesScreen}
         options={{ title: 'Send Message' }}
+      />
+      <Stack.Screen
+        name="MessageSettingsScreen"
+        component={MessageSettingsScreen}
+        options={{ title: 'Message Settings' }}
       />
     </Stack.Navigator>
   );

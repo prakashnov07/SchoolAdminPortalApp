@@ -1,4 +1,5 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useLayoutEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -26,6 +27,7 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import CustomPickerModal from '../components/CustomPickerModal';
 
 
 import { CoreContext } from '../context/CoreContext';
@@ -112,6 +114,20 @@ export default function SendMessagesScreen() {
 
   // Image Options Modal
   const [imageOptionsVisible, setImageOptionsVisible] = useState(false);
+
+  // Menu Modal State
+  const [menuVisible, setMenuVisible] = useState(false);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={() => setMenuVisible(true)} style={{ marginRight: 15 }}>
+          <Icon name="dots-vertical" size={26} color={blackColor || '#000'} />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, blackColor]);
 
   useEffect(() => {
     getAllClasses();
@@ -446,50 +462,7 @@ export default function SendMessagesScreen() {
       });
   };
 
-  const renderPickerModal = () => (
-    <Modal visible={pickerVisible} transparent animationType="fade" onRequestClose={onCancelPicker}>
-      <TouchableWithoutFeedback onPress={onCancelPicker}>
-        <View style={pickerModalOverlay}>
-          <View style={pickerModalContent}>
-            <Text style={pickerModalTitle}>{pickerTitle}</Text>
-            <ScrollView style={{ maxHeight: 200 }}>
-              {pickerData.map((item, idx) => {
-                const label = item.label || item; // Handle object or string
-                const value = item.value || item;
-                return (
-                  <TouchableOpacity
-                    key={idx}
-                    style={[
-                      pickerModalItem,
-                      value === pickerSelectedValue && pickerModalItemSelected,
-                    ]}
-                    onPress={() => setPickerSelectedValue(value)}
-                  >
-                    <Text
-                      style={[
-                        pickerModalItemText,
-                        value === pickerSelectedValue && pickerModalItemTextSelected,
-                      ]}
-                    >
-                      {label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-            <View style={pickerModalButtons}>
-              <TouchableOpacity style={pickerModalButton} onPress={onCancelPicker}>
-                <Text style={pickerModalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={pickerModalButton} onPress={onConfirmPicker}>
-                <Text style={pickerModalButtonText}>Confirm</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
-    </Modal>
-  );
+
 
   const renderImageOptionsModal = () => (
     <Modal visible={imageOptionsVisible} transparent animationType="slide" onRequestClose={() => setImageOptionsVisible(false)}>
@@ -521,6 +494,43 @@ export default function SendMessagesScreen() {
     </Modal>
   );
 
+  const onNavigate = (screen, params) => {
+    setMenuVisible(false);
+    setTimeout(() => {
+      navigation.navigate(screen, params);
+    }, 100);
+  };
+
+  const renderMenuModal = () => (
+    <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
+      <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
+        <View style={pickerModalOverlay}>
+          <View style={[pickerModalContent, { width: 250, alignSelf: 'flex-end', marginRight: 20, marginTop: 50, position: 'absolute', top: 0 }]}>
+            {/* Custom positioning for a 'menu' feel, relying on absolute top right or just centering if easier. 
+                Legacy was bottom sheet. Let's stick to centered modal for simplicity or adjust style. 
+                pickerModalOverlay usually centers. Let's allow centering but maybe smaller width. */}
+
+            <View style={{ backgroundColor: 'white', borderRadius: 10, overflow: 'hidden' }}>
+              <TouchableOpacity
+                style={[pickerModalItem, { paddingVertical: 15, paddingHorizontal: 20 }]}
+                onPress={() => onNavigate('MessageSettingsScreen')}
+              >
+                <Text style={[pickerModalItemText, { fontSize: 16 }]}>Message Settings</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[pickerModalItem, { paddingVertical: 15, paddingHorizontal: 20, borderBottomWidth: 0 }]}
+                onPress={() => onNavigate('MainTabs', { screen: 'AdminPanel' })}
+              >
+                <Text style={[pickerModalItemText, { fontSize: 16 }]}>Admin Panel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
+    </Modal>
+  );
+
   const getPriorityLabel = (val) => priorities.find(p => p.value === val)?.label || val;
 
   const onChangeDate = (event, selectedDate) => {
@@ -536,7 +546,7 @@ export default function SendMessagesScreen() {
 
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f4e0ff' }} edges={['bottom', 'left', 'right']}>
+    <SafeAreaView style={styleContext.background} edges={['bottom', 'left', 'right']}>
       <KeyboardAvoidingView
         style={{ flex: 1, flexDirection: 'column' }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
@@ -574,42 +584,22 @@ export default function SendMessagesScreen() {
           </View>
 
           <Text style={label}>Select Section</Text>
-          {Platform.OS === 'ios' ? (
             <TouchableOpacity
               style={pickerButton}
               onPress={() => openPicker(getSectionOptions(), selectedSection, setSelectedSection, 'Select Section')}
             >
               <Text style={pickerButtonText}>{selectedSection}</Text>
               <Icon name="menu-down" size={24} color={blackColor} />
-            </TouchableOpacity>
-          ) : (
-              <View style={pickerWrapper}>
-                <Picker selectedValue={selectedSection} onValueChange={setSelectedSection} style={picker} dropdownIconColor={blackColor}>
-                  {getSectionOptions().map((sec) => (
-                    <Picker.Item key={sec.value} label={sec.label} value={sec.value} color={blackColor} />
-                ))}
-              </Picker>
-            </View>
-          )}
+          </TouchableOpacity>
 
           <Text style={label}>Select Priority</Text>
-          {Platform.OS === 'ios' ? (
             <TouchableOpacity
               style={pickerButton}
               onPress={() => openPicker(priorities, selectedPriority, setSelectedPriority, 'Select Priority')}
             >
               <Text style={pickerButtonText}>{getPriorityLabel(selectedPriority)}</Text>
               <Icon name="menu-down" size={24} color={blackColor} />
-            </TouchableOpacity>
-          ) : (
-              <View style={pickerWrapper}>
-                <Picker selectedValue={selectedPriority} onValueChange={setSelectedPriority} style={picker} dropdownIconColor={blackColor}>
-                  {priorities.map((pri) => (
-                    <Picker.Item key={pri.value} label={pri.label} value={pri.value} color={blackColor} />
-                ))}
-              </Picker>
-            </View>
-          )}
+          </TouchableOpacity>
 
           {selectedPriority === '3' && (
             <View style={{ marginBottom: 20 }}>
@@ -785,8 +775,18 @@ export default function SendMessagesScreen() {
           </TouchableOpacity>
         </View>
 
-        {renderPickerModal()}
+        <CustomPickerModal
+          visible={pickerVisible}
+          title={pickerTitle}
+          data={pickerData}
+          selectedValue={pickerSelectedValue}
+          onSelect={setPickerSelectedValue}
+          onClose={onCancelPicker}
+          onConfirm={onConfirmPicker}
+          onReload={() => { setPickerVisible(false); getAllClasses(); getAllSections(); }}
+        />
         {renderImageOptionsModal()}
+        {renderMenuModal()}
 
       </KeyboardAvoidingView>
     </SafeAreaView>

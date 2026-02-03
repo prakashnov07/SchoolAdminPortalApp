@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,8 @@ import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CoreContext } from '../context/CoreContext';
 import { StyleContext } from '../context/StyleContext';
+
+
 
 const adminPanelStyles = {
   listContent: {
@@ -138,6 +140,29 @@ const adminPanelStyles = {
   },
 };
 
+const adminPanelItems = [
+  { key: 'sendMessages', label: 'Send Messages', icon: 'message-text', color: '#1976d2' },
+  { key: 'manageAttendance', label: 'Manage Attendance', icon: 'calendar-check', color: '#388e3c' },
+  { key: 'manageHomework', label: 'Manage Home Work', icon: 'clipboard-text', color: '#f57c00' },
+  { key: 'manageReports', label: 'Manage Reports', icon: 'alert-circle-outline', color: '#d32f2f' },
+  { key: 'manageStaff', label: 'Manage Staff', icon: 'account-group', color: '#9c27b0' },
+  { key: 'addEnquiry', label: 'Add Enquiry', icon: 'account-plus', color: '#e91e63' },
+  { key: 'manageCounters', label: 'Manage Counters', icon: 'key', color: '#303f9f' },
+  { key: 'manageFee', label: 'Manage Fee', icon: 'receipt', color: '#388e3c' },
+  { key: 'publishResult', label: 'Publish Result', icon: 'trending-up', color: '#388e3c' },
+  { key: 'holidaysEvents', label: 'Holidays Events', icon: 'calendar-check', color: '#d32f2f' },
+  { key: 'manageTimetable', label: 'Manage Time-table', icon: 'alarm', color: '#1976d2' },
+  { key: 'studentProfile', label: 'Student Profile', icon: 'account', color: '#9c27b0' },
+  { key: 'viewQueries', label: 'View Queries', icon: 'comment-alert-outline', color: '#fbc02d' },
+  { key: 'googleQuiz', label: 'Google Quiz', icon: 'message-text', color: '#1976d2' },
+  { key: 'softwareLink', label: 'Software Link', icon: 'file-document', color: '#e91e63' },
+  { key: 'accountReports', label: 'Account Reports', icon: 'currency-usd', color: '#388e3c' },
+  { key: 'onlineMaterial', label: 'Online Material', icon: 'bookmark', color: '#fbc02d' },
+  { key: 'onlineExam', label: 'Online Exam', icon: 'message-text-outline', color: '#9c27b0' },
+  { key: 'onlineClasses', label: 'Online Classes', icon: 'bookmark-outline', color: '#1976d2' },
+  { key: 'transportGPS', label: 'Transport GPS', icon: 'train-car', color: '#1976d2' },
+];
+
 function AdminHeader({ onLogout }) {
   return (
     <LinearGradient colors={['#5a45d4', '#8562ff']} style={adminPanelStyles.headerContainer}>
@@ -192,6 +217,32 @@ export default function AdminPanelScreen({ navigation }) {
   const coreContext = React.useContext(CoreContext);
   const styleContext = React.useContext(StyleContext);
 
+  const [filteredItems, setFilteredItems] = React.useState([]);
+
+  useEffect(() => {
+    coreContext.getSchoolData();
+    coreContext.getAllowedTabs(); // Fetch allowed tabs
+    coreContext.fetchSubjects();
+    coreContext.fetchRoles();
+    coreContext.fetchFeedbacks('');
+    coreContext.fetchStaffs('active');
+    if (!coreContext.isCached) coreContext.cacheStudents();
+  }, []);
+
+  useEffect(() => {
+    setAccessibleTabs();
+  }, [coreContext.allowedTabs, coreContext.role]);
+
+  const setAccessibleTabs = () => {
+    if (coreContext.role === 'super' || coreContext.role === 'tech') {
+      setFilteredItems(adminPanelItems);
+      return;
+    }
+    const accessible = adminPanelItems.filter(item => coreContext.hasTabPermission(item.key));
+    setFilteredItems(accessible);
+  };
+
+
   const handleLogout = () => {
     Alert.alert(
       'Logout',
@@ -214,32 +265,14 @@ export default function AdminPanelScreen({ navigation }) {
     );
   };
 
-  const adminPanelItems = [
-    { key: 'sendMessages', label: 'Send Messages', icon: 'message-text', color: '#1976d2' },
-    { key: 'manageAttendance', label: 'Manage Attendance', icon: 'calendar-check', color: '#388e3c' },
-    { key: 'manageHomework', label: 'Manage Home Work', icon: 'clipboard-text', color: '#f57c00' },
-    { key: 'manageReports', label: 'Manage Reports', icon: 'alert-circle-outline', color: '#d32f2f' },
-    { key: 'manageStaff', label: 'Manage Staff', icon: 'account-group', color: '#9c27b0' },
-    { key: 'addEnquiry', label: 'Add Enquiry', icon: 'account-plus', color: '#e91e63' },
-    { key: 'manageCounters', label: 'Manage Counters', icon: 'key', color: '#303f9f' },
-    { key: 'manageFee', label: 'Manage Fee', icon: 'receipt', color: '#388e3c' },
-    { key: 'publishResult', label: 'Publish Result', icon: 'trending-up', color: '#388e3c' },
-    { key: 'holidaysEvents', label: 'Holidays Events', icon: 'calendar-check', color: '#d32f2f' },
-    { key: 'manageTimetable', label: 'Manage Time-table', icon: 'alarm', color: '#1976d2' },
-    { key: 'studentProfile', label: 'Student Profile', icon: 'account', color: '#9c27b0' },
-    { key: 'viewQueries', label: 'View Queries', icon: 'comment-alert-outline', color: '#fbc02d' },
-    { key: 'googleQuiz', label: 'Google Quiz', icon: 'message-text', color: '#1976d2' },
-    { key: 'softwareLink', label: 'Software Link', icon: 'file-document', color: '#e91e63' },
-    { key: 'accountReports', label: 'Account Reports', icon: 'currency-usd', color: '#388e3c' },
-    { key: 'onlineMaterial', label: 'Online Material', icon: 'bookmark', color: '#fbc02d' },
-    { key: 'onlineExam', label: 'Online Exam', icon: 'message-text-outline', color: '#9c27b0' },
-    { key: 'onlineClasses', label: 'Online Classes', icon: 'bookmark-outline', color: '#1976d2' },
-    { key: 'transportGPS', label: 'Transport GPS', icon: 'train-car', color: '#1976d2' },
-  ];
 
   const onItemPress = (item) => {
     if (item.key === 'sendMessages') {
       navigation.navigate('SendMessages');
+    } else if (item.key === 'manageAttendance') {
+      navigation.navigate('MarkAttendance');
+    } else if (item.key === 'manageHomework') {
+      navigation.navigate('UploadHomeWorkScreen');
     } else {
       Alert.alert(item.label, `You clicked on ${item.label}`);
     }
@@ -267,7 +300,7 @@ export default function AdminPanelScreen({ navigation }) {
     >
       <AdminHeader onLogout={handleLogout} />
       <FlatList
-        data={adminPanelItems}
+        data={filteredItems}
         renderItem={renderItem}
         keyExtractor={(item) => item.key}
         numColumns={3}

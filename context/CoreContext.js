@@ -69,6 +69,12 @@ export function CoreProvider({ children }) {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [subjects, setSubjects] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [isCached, setIsCached] = useState(false);
   const [months] = useState([
     { id: 1, name: 'April' },
     { id: 2, name: 'May' },
@@ -241,6 +247,15 @@ export function CoreProvider({ children }) {
     });
   }
 
+  const fetchCategories = () => {
+    axios.get('/getcategories', { params: { branchid } })
+      .then(response => {
+        if (response.data && response.data.categories) {
+          setCategories(response.data.categories);
+        }
+      });
+  };
+
   const markMessageAsRead = (id) => {
 
     const messageStorage = '@schoolapp:messages:' + branchid;
@@ -261,15 +276,59 @@ export function CoreProvider({ children }) {
     })
   };
 
-  const fetchCategories = () => {
-    axios.get('/getcategories', { params: { branchid } })
+  const fetchSubjects = () => {
+    const subjects = unhydrate('@schoolapp:subjects');
+    if (subjects) {
+      subjects.then((data) => {
+        setSubjects(data);
+      });
+    }
+
+    axios.get('/getsubjects', { params: { branchid } })
       .then(response => {
-        // Dispatch to state if needed, but for now we might just log or handle in component
-        // If Home.js used it, it probably updated some state.
-        // Looking at CoreContext state, there is no categories state, but we can add if needed.
-        // For now, I will just replicate the call.
+        const subjectsData = response.data.subjects || response.data.rows;
+        if (subjectsData) {
+          setSubjects(subjectsData);
+          hydrate('@schoolapp:subjects', subjectsData);
+        }
       });
   };
+
+  const fetchRoles = () => {
+    axios.get('/getroles', { params: { branchid } })
+      .then(response => {
+        if (response.data && response.data.roles) {
+          setRoles(response.data.roles);
+        }
+      });
+  };
+
+  const fetchFeedbacks = (astatus) => {
+    //  console.log('branchid', branchid);
+    axios.get('fetchfeedbacks', { params: { branchid, astatus, owner: phone, role: role } }).then(response => {
+      if (response.data && response.data.filteredFeedbacks) {
+        setFeedbacks(response.data.filteredFeedbacks);
+      }
+    });
+  };
+
+  const fetchStaffs = (filter) => {
+    axios.get('/fetchstaffs', { params: { branchid, filter } })
+      .then((response) => {
+        if (response.data && response.data.staffs) {
+          setStaffs(response.data.staffs);
+        }
+      });
+  };
+
+  const cacheStudents = () => {
+    axios.post('/cache-students', { owner: phone, branchid })
+      .then(() => {
+        showToastMessage('Students cached successfully...');
+        setIsCached(true);
+      });
+  };
+
 
   const checkFcmToken = (token) => {
     // const owner = getState().core.phone; // In context we have phone
@@ -467,7 +526,7 @@ export function CoreProvider({ children }) {
 
         setSchoolData(response.data.schooldata);
 
-        console.log('schooldata', response.data);
+        //   console.log('schooldata', response.data);
         //  getVersion(isUpdateNeeded, response.data.schooldata.current_version);
       });
 
@@ -476,6 +535,8 @@ export function CoreProvider({ children }) {
   const hasTabPermission = (url) => {
 
     if (role === 'super' || role === 'tech') return true;
+
+    if (!allowedTabs || !Array.isArray(allowedTabs)) return false;
 
     for (let tab of allowedTabs) {
 
@@ -949,6 +1010,16 @@ export function CoreProvider({ children }) {
     setOtp,
     setBranchid,
     grpBranches,
+    subjects,
+    roles,
+    feedbacks,
+    isCached,
+    fetchSubjects,
+    fetchRoles,
+    fetchFeedbacks,
+    fetchStaffs,
+    cacheStudents,
+    allowedTabs,
     branch,
     setGrpBranches,
     schoolData,
@@ -956,6 +1027,7 @@ export function CoreProvider({ children }) {
     checkUserValidity,
     messages,
     fetchCategories,
+    categories,
     checkFcmToken,
     checkStudentAttendance,
     addAllEnqiryNo,
