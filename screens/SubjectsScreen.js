@@ -39,11 +39,11 @@ export default function SubjectsScreen({ navigation }) {
     }, []);
 
     const fetchSubjects = () => {
-        console.log("Fetching subjects with branchid:", branchid);
+        //  console.log("Fetching subjects with branchid:", branchid);
         setLoading(true);
         axios.get('/getsubjects', { params: { branchid } })
             .then(response => {
-                console.log("Subjects API Response:", response.data);
+                // console.log("Subjects API Response:", response.data);
                 const data = response.data.subjects || [];
                 setSubjects(data);
                 if (coreContext.updateSubjects) {
@@ -98,7 +98,7 @@ export default function SubjectsScreen({ navigation }) {
 
         axios.post('/deletesubject', { id, owner: coreContext.phone, branchid })
             .then(response => {
-                console.log("Delete Response:", response.data);
+                console.log("Delete Response:", response);
                 Toast.show({ type: 'success', text1: 'Success', text2: 'Subject deleted' });
                 // Small delay to ensure server consistency
                 setTimeout(fetchSubjects, 1000);

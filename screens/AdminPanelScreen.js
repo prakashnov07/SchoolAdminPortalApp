@@ -273,6 +273,10 @@ export default function AdminPanelScreen({ navigation }) {
       navigation.navigate('MarkAttendance');
     } else if (item.key === 'manageHomework') {
       navigation.navigate('UploadHomeWorkScreen');
+    } else if (item.key === 'manageReports') {
+      navigation.navigate('UploadReportScreen');
+    } else if (item.key === 'manageStaff') {
+      navigation.navigate('ManageStaffScreen');
     } else {
       Alert.alert(item.label, `You clicked on ${item.label}`);
     }

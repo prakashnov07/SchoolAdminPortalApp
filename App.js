@@ -25,6 +25,15 @@ import AttendanceCountScreen from './screens/AttendanceCountScreen';
 import ViewStudentAttendanceScreen from './screens/ViewStudentAttendanceScreen';
 import SingleStudentAttendanceScreen from './screens/SingleStudentAttendanceScreen';
 import ScanStudentScreen from './screens/ScanStudentScreen';
+import UploadReportScreen from './screens/UploadReportScreen';
+import ViewReportScreen from './screens/ViewReportScreen';
+import ViewReportDateScreen from './screens/ViewReportDateScreen';
+import CategoriesScreen from './screens/CategoriesScreen';
+import ManageStaffScreen from './screens/ManageStaffScreen';
+import AddStaffScreen from './screens/AddStaffScreen';
+import StaffProfileScreen from './screens/StaffProfileScreen';
+import StaffRemarksScreen from './screens/StaffRemarksScreen';
+import DisciplineProfileScreen from './screens/DisciplineProfileScreen';
 import { CoreProvider } from './context/CoreContext';
 import {StyleProvider} from './context/StyleContext';
 
@@ -249,6 +258,96 @@ export default function App() {
               component={ScanStudentScreen}
               options={{
                 title: 'Scan QR/Barcode',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="UploadReportScreen"
+              component={UploadReportScreen}
+              options={{
+                title: 'Upload Report',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="ViewReportScreen"
+              component={ViewReportScreen}
+              options={{
+                title: 'View Report',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="CategoriesScreen"
+              component={CategoriesScreen}
+              options={{
+                title: 'Manage Categories',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="ManageStaffScreen"
+              component={ManageStaffScreen}
+              options={{
+                title: 'Manage Staff',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="ViewReportDateScreen"
+              component={ViewReportDateScreen}
+              options={{
+                title: 'View Date Wise Report',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="AddStaffScreen"
+              component={AddStaffScreen}
+              options={({ route }) => ({
+                title: route.params?.staff ? 'Edit Staff' : 'Add Staff',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              })}
+            />
+            <Stack.Screen
+              name="StaffProfileScreen"
+              component={StaffProfileScreen}
+              options={{
+                title: 'Employee Profile',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="StaffRemarksScreen"
+              component={StaffRemarksScreen}
+              options={{
+                title: 'Add Remarks',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="DisciplineProfileScreen"
+              component={DisciplineProfileScreen}
+              options={{
+                title: 'Discipline Profile',
                 headerStyle: { backgroundColor: '#5a45d4' },
                 headerTintColor: '#fff',
                 headerTitleStyle: { fontWeight: 'bold' },

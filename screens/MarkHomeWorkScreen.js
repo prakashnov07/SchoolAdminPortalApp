@@ -14,34 +14,61 @@ import HomeWorkMenuModal from '../components/HomeWorkMenuModal';
 
 // Student Item for Homework (Negative Marking: Select if Homework NOT done)
 const StudentHomeworkItem = ({ item, isMarked, onToggle, styleContext }) => {
+    // Logic similar to UploadReportScreen/HomeWorkListItem
+    const bgColor = isMarked ? '#ffebee' : '#fff'; // Red tint for "Not Done" (Absent from homework)
+    const borderColor = isMarked ? '#d32f2f' : '#ddd';
+
+    // Name Fallback
+    const name = item.firstname ? `${item.firstname} ${item.lastname || ''}` : (item.name || item.studentname || 'No Name');
+    const roll = item.roll || item.roll_no || item.rollno || 'N/A';
+    const reg = item.scholarno || '-';
+    // Use robust ID
+    const studentId = item.enrollment || item.id;
+    const enr = studentId || '-';
+    const qname = `${name} (Roll: ${roll})`;
+
     return (
         <TouchableOpacity 
             style={[
                 styleContext.card, 
                 { 
-                    flexDirection: 'row', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between', 
                     padding: 16, 
                     marginBottom: 10,
-                    borderWidth: 1, // Keep border logic if needed, or rely on card elevation
-                    borderColor: isMarked ? '#d32f2f' : '#ddd',
-                    backgroundColor: isMarked ? '#ffebee' : '#fff'
+                    borderWidth: 1,
+                    borderColor: borderColor,
+                    backgroundColor: bgColor,
+                    elevation: 2
                 }
             ]} 
-            onPress={() => onToggle(item.enrollment)}
+            onPress={() => onToggle(studentId)}
         >
-            <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 16, fontWeight: 'bold', color: styleContext.titleColor }}>{item.firstname} {item.lastname}</Text>
-                <Text style={{ fontSize: 14, color: '#666', marginTop: 4 }}>Roll: <Text style={{ fontWeight: 'bold', color: styleContext.blackColor }}>{item.roll || item.roll_no || 'N/A'}</Text></Text>
+            {/* Title */}
+            <View style={{ alignItems: 'center', marginBottom: 10 }}>
+                <Text style={{ fontSize: 16, fontWeight: 'bold', color: styleContext.titleColor || '#333', textAlign: 'center' }}>
+                    {qname}
+                </Text>
             </View>
-            
-            <View style={styles.checkboxContainer}>
+
+            {/* Reg No Row */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <Text style={{ fontSize: 14, color: '#666' }}>
+                    Reg No : {reg}
+                </Text>
                 <Icon 
                     name={isMarked ? "close-circle" : "checkbox-blank-circle-outline"} 
-                    size={28} 
+                    size={24} 
                     color={isMarked ? "#d32f2f" : "#bdbdbd"} 
                 />
+            </View>
+
+            {/* Enr No Row */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontSize: 14, color: '#666' }}>
+                    Enr No : {enr}
+                </Text>
+                <Text style={{ fontSize: 14, fontWeight: 'bold', color: isMarked ? '#d32f2f' : '#4caf50' }}>
+                    {isMarked ? 'Not Done' : 'Done'}
+                </Text>
             </View>
         </TouchableOpacity>
     );
@@ -158,7 +185,8 @@ export default function MarkHomeWorkScreen({ navigation }) {
         // Actually, let's use `/searchbyclassdate` since legacy `HomeWork.js` uses it specifically.
         // But invalid endpoint might fail. Let's try `/search-by-class-v4` first which is proven constant.
         
-        axios.get('/search-by-class-v4', { params })
+        // Switching to v2 as v4 might be failing or returning empty for this action
+        axios.get('/search-by-class-v2', { params })
             .then(response => {
                 const fetchedStudents = response.data.rows || [];
                 setStudents(fetchedStudents);
@@ -168,7 +196,7 @@ export default function MarkHomeWorkScreen({ navigation }) {
                 }
             })
             .catch(error => {
-                console.error(error);
+                console.error('MarkHomeWorkScreen Fetch Error:', error);
                 Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to fetch students' });
             })
             .finally(() => setSearchLoading(false));
@@ -205,7 +233,8 @@ export default function MarkHomeWorkScreen({ navigation }) {
     const processSubmission = async () => {
         setSubmitLoading(true);
         try {
-            const studentsForAttendance = students.map(s => s.enrollment);
+            // Ensure we have valid IDs
+            const studentsForAttendance = students.map(s => s.enrollment || s.id);
             
             const payload = {
                 absentstudents: absentStudents,
