@@ -242,13 +242,31 @@ export default function SearchStudentScreen({ navigation }) {
                 </View>
 
                 {/* Search Button */}
-                <View style={{ padding: 10 }}>
+                {/* Search & Message Buttons */}
+                <View style={{ padding: 10, flexDirection: 'row' }}>
                     <TouchableOpacity
-                        style={[styles.searchButton, { backgroundColor: primary?.backgroundColor || '#6200ee' }]}
+                        style={[styles.searchButton, { backgroundColor: primary?.backgroundColor || '#6200ee', flex: 1, marginRight: 5 }]}
                         onPress={handleSearch}
                     >
                         <Text style={{ color: '#fff', fontWeight: 'bold', marginRight: 5 }}>Search</Text>
                         <Icon name="magnify" size={24} color="#fff" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.searchButton, { backgroundColor: '#2e7d32', flex: 1, marginLeft: 5 }]}
+                        onPress={() => {
+                            navigation.navigate('SendMessages', {
+                                fromSearch: true,
+                                classid: selectedClass,
+                                sectionid: selectedSection,
+                                stype: studentType,
+                                busno: selectedBus,
+                                routename: selectedRoute
+                            });
+                        }}
+                    >
+                        <Text style={{ color: '#fff', fontWeight: 'bold', marginRight: 5 }}>Message</Text>
+                        <Icon name="message-text-outline" size={24} color="#fff" />
                     </TouchableOpacity>
                 </View>
             </View>

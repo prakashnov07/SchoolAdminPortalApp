@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useLayoutEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -117,7 +117,11 @@ export default function SendMessagesScreen() {
 
   // Menu Modal State
   const [menuVisible, setMenuVisible] = useState(false);
+  /* Removed duplicate menuVisible */
   const navigation = useNavigation();
+  const route = useRoute();
+  const { fromSearch, classid: searchClassId, sectionid: searchSectionId, stype, busno, routename: searchRouteVar } = route.params || {};
+
 
   useEffect(() => {
     navigation.setOptions({
@@ -326,7 +330,7 @@ export default function SendMessagesScreen() {
       });
 
       Toast.show({ type: 'success', text1: 'Message sent with images.' });
-      finalizeSend(title, classid, sectionid);
+      finalizeSend(title, classid, sectionid, id);
 
     } catch (error) {
       console.log('Image upload error', error);
@@ -349,7 +353,7 @@ export default function SendMessagesScreen() {
       });
 
       Toast.show({ type: 'success', text1: 'Message sent with PDF.' });
-      finalizeSend(title, classid, sectionid);
+      finalizeSend(title, classid, sectionid, id);
     } catch (error) {
       console.log('Doc upload error', error);
       Alert.alert('Upload Error', `Failed to upload document. ${error.message || ''}`);
@@ -357,19 +361,24 @@ export default function SendMessagesScreen() {
     }
   };
 
-  const finalizeSend = (title, classid, sectionid) => {
-    axios.post('/sendnotification', {
-      title,
-      content: 'You have a message on Noticeboard',
-      classid,
-      sectionid,
-      branchid
-    }).catch(e => console.log(e));
+  const finalizeSend = (title, classid, sectionid, messageId) => {
+    console.log('messageId', messageId);
+    if (messageId) {
+      axios.post('/sendnotification', {
+        title,
+        content: 'You have a message on Noticeboard',
+        classid,
+        sectionid,
+        branchid,
+        id: messageId
+      }).catch(e => console.log(e));
+    }
 
     setLoading(false);
     setMessageText('');
     setMsgType('');
     clearAttachments();
+    // navigation.goBack(); // Optional: go back after sending? Legacy usually stayed or cleared form. Keeping current behavior (stay).
   };
 
   const getSelectedNames = (ids) => {
@@ -383,18 +392,46 @@ export default function SendMessagesScreen() {
   };
 
   const onSendMessage = () => {
-    const selectedClassLabel = getSelectedNames(selectedClassItems).join(',');
-    const title = `Message for Class: ${selectedClassLabel}${selectedSection}`;
+    let title = '';
+    let classIdString = '';
+    let sectionIdToSend = '';
+    let studentTypeToSend = '';
+    let busNoToSend = ''; // 0 usually means all or none, existing API expects number or string? Search used 0 for all.
+    let routeNameToSend = '';
 
-    // Validations
-    if (selectedClassItems.length === 0) {
-      Toast.show({ type: 'error', text1: 'Please choose a class.' });
-      return;
-    }
+    if (fromSearch) {
+      // Use params from search
+      const displayClass = allClasses.find(c => c.classid === searchClassId)?.classname || 'All';
+      const displaySection = allSections.find(s => s.sectionid === searchSectionId)?.sectionname || 'All';
 
-    if ((selectedClassItems[0] === 'All Class' || selectedClassItems.length > 1) && selectedPriority === '2') {
-      Alert.alert('Notice', 'Priority Messages can be sent to One class at a time.');
-      return;
+      let titleParts = [`Message for Class: ${displayClass} ${displaySection}`];
+      if (stype) titleParts.push(stype === 'ds' ? 'Day Scholar' : stype === 'dc' ? 'Day Care' : 'Hosteler');
+      if (busno) titleParts.push(`Bus: ${busno}`);
+      if (searchRouteVar) titleParts.push(`Route: ${searchRouteVar}`);
+
+      title = titleParts.join(' - ');
+      classIdString = searchClassId || '';
+      sectionIdToSend = searchSectionId || '';
+      studentTypeToSend = stype || '';
+      busNoToSend = busno || 0;
+      routeNameToSend = searchRouteVar || '';
+    } else {
+    // Use manual selection
+      const selectedClassLabel = getSelectedNames(selectedClassItems).join(',');
+      title = `Message for Class: ${selectedClassLabel}${selectedSection}`;
+
+      // Validations for manual selection
+      if (selectedClassItems.length === 0) {
+        Toast.show({ type: 'error', text1: 'Please choose a class.' });
+        return;
+      }
+
+      if ((selectedClassItems[0] === 'All Class' || selectedClassItems.length > 1) && selectedPriority === '2') {
+        Alert.alert('Notice', 'Priority Messages can be sent to One class at a time.');
+        return;
+      }
+      classIdString = selectedClassItems.toString();
+      sectionIdToSend = selectedSection;
     }
 
     const hasAttachments = (selectedAttachmentType === 'Image' && attachments.length > 0) || (selectedAttachmentType === 'PDF' && attachmentDetails);
@@ -420,21 +457,26 @@ export default function SendMessagesScreen() {
     setLoading(true);
     Toast.show({ type: 'info', text1: 'Sending message...' });
 
-    const classIdString = selectedClassItems.toString();
+
 
     const payload = {
       title,
       content: messageText,
       classid: classIdString,
-      enr: '',
+      enr: '', // Enrollment number if individual? 
       owner,
       filepath: '',
-      sectionid: selectedSection,
+      sectionid: sectionIdToSend,
       priority: selectedPriority,
       attendancedate: schDate,
       astatus: 'not',
       branchid: branchid,
-      etype: msgType
+      etype: msgType,
+      // Extra params for filtered search
+      stype: studentTypeToSend,
+      busno: busNoToSend,
+      routename: routeNameToSend,
+      fromSearch: fromSearch ? true : false
     };
 
     const endpoint = selectedPriority === '3' ? '/save-scheduled-message' : '/savemessage';
@@ -445,13 +487,13 @@ export default function SendMessagesScreen() {
 
         if (!hasAttachments) {
           Toast.show({ type: 'success', text1: 'Message sent successfully.' });
-          finalizeSend(title, classIdString, selectedSection);
+          finalizeSend(title, classIdString, sectionIdToSend, messageId);
         } else {
           if (selectedAttachmentType === 'Image') {
             // Pass directly as handled by uploadMultiImages which now uses pre-filled data
-            uploadMultiImages(messageId, title, classIdString, selectedSection);
+            uploadMultiImages(messageId, title, classIdString, sectionIdToSend);
           } else {
-            uploadDocument(messageId, title, classIdString, selectedSection);
+            uploadDocument(messageId, title, classIdString, sectionIdToSend);
           }
         }
       })
@@ -558,39 +600,79 @@ export default function SendMessagesScreen() {
           keyboardShouldPersistTaps="handled"
         >
 
-          <Text style={label}>Select Class</Text>
-          <View style={{ width: '100%', backgroundColor: '#d6bee7', borderRadius: 16, borderColor: blackColor, borderWidth: 1, marginBottom: 20, paddingVertical: 5 }}>
-            <SectionedMultiSelect
-              items={getClassOptions()}
-              IconRenderer={MaterialIcons}
-              uniqueKey="id"
-              subKey="children"
-              selectText="Choose Classes..."
-              showDropDowns={true}
-              readOnlyHeadings={false}
-              onSelectedItemsChange={onSelectedItemsChange}
-              selectedItems={selectedClassItems}
-              styles={{
-                container: { backgroundColor: '#fff', borderRadius: 10 },
-                selectToggle: { paddingHorizontal: 16, paddingVertical: 12 },
-                selectToggleText: { color: blackColor, fontSize: 16 },
-                chipContainer: { backgroundColor: '#d6bee7', borderRadius: 8, borderColor: blackColor, borderWidth: 0.5 },
-                chipText: { color: blackColor },
-                chipIcon: { color: blackColor },
-                confirmText: { color: '#fff', fontWeight: 'bold' },
-                button: { backgroundColor: '#5a45d4' }
-              }}
-            />
-          </View>
+          {fromSearch ? (
+            <View style={{ marginBottom: 20, padding: 15, backgroundColor: '#e3f2fd', borderRadius: 10, borderWidth: 1, borderColor: '#90caf9' }}>
+              <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#1565c0', marginBottom: 5 }}>Sending to Search Results:</Text>
 
-          <Text style={label}>Select Section</Text>
-            <TouchableOpacity
-              style={pickerButton}
-              onPress={() => openPicker(getSectionOptions(), selectedSection, setSelectedSection, 'Select Section')}
-            >
-              <Text style={pickerButtonText}>{selectedSection}</Text>
-              <Icon name="menu-down" size={24} color={blackColor} />
-          </TouchableOpacity>
+              <Text style={{ fontSize: 14, color: '#333' }}>
+                <Text style={{ fontWeight: 'bold' }}>Class:</Text> {allClasses.find(c => c.classid === searchClassId)?.classname || 'All'} {'  '}
+                <Text style={{ fontWeight: 'bold' }}>Section:</Text> {allSections.find(s => s.sectionid === searchSectionId)?.sectionname || 'All'}
+              </Text>
+
+              {(stype || busno || searchRouteVar) && (
+                <Text style={{ fontSize: 14, color: '#333', marginTop: 5 }}>
+                  {stype && <Text><Text style={{ fontWeight: 'bold' }}>Type:</Text> {stype === 'ds' ? 'Day Scholar' : stype === 'dc' ? 'Day Care' : 'Hosteler'}  </Text>}
+                  {busno ? <Text><Text style={{ fontWeight: 'bold' }}>Bus:</Text> {busno}  </Text> : null}
+                  {searchRouteVar ? <Text><Text style={{ fontWeight: 'bold' }}>Route:</Text> {searchRouteVar}</Text> : null}
+                </Text>
+              )}
+            </View>
+          ) : (
+            <>
+              <TouchableOpacity
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: '#e3f2fd',
+                  padding: 10,
+                  borderRadius: 8,
+                  marginBottom: 15,
+                  borderColor: '#90caf9',
+                  borderWidth: 1
+                }}
+                onPress={() => navigation.navigate('SearchStudentScreen')}
+              >
+                <Icon name="magnify" size={24} color="#1e88e5" style={{ marginRight: 10 }} />
+                <Text style={{ fontSize: 16, color: '#1565c0', fontWeight: '500' }}>Advanced Search</Text>
+                <View style={{ flex: 1 }} />
+                <Icon name="chevron-right" size={24} color="#1e88e5" />
+              </TouchableOpacity>
+
+                <Text style={label}>Select Class</Text>
+                <View style={{ width: '100%', backgroundColor: '#d6bee7', borderRadius: 16, borderColor: blackColor, borderWidth: 1, marginBottom: 20, paddingVertical: 5 }}>
+                  <SectionedMultiSelect
+                    items={getClassOptions()}
+                    IconRenderer={MaterialIcons}
+                    uniqueKey="id"
+                    subKey="children"
+                    selectText="Choose Classes..."
+                    showDropDowns={true}
+                    readOnlyHeadings={false}
+                    onSelectedItemsChange={onSelectedItemsChange}
+                    selectedItems={selectedClassItems}
+                    styles={{
+                      container: { backgroundColor: '#fff', borderRadius: 10 },
+                      selectToggle: { paddingHorizontal: 16, paddingVertical: 12 },
+                      selectToggleText: { color: blackColor, fontSize: 16 },
+                      chipContainer: { backgroundColor: '#d6bee7', borderRadius: 8, borderColor: blackColor, borderWidth: 0.5 },
+                      chipText: { color: blackColor },
+                      chipIcon: { color: blackColor },
+                      confirmText: { color: '#fff', fontWeight: 'bold' },
+                      button: { backgroundColor: '#5a45d4' }
+                    }}
+                  />
+                </View>
+
+                <Text style={label}>Select Section</Text>
+                <TouchableOpacity
+                  style={pickerButton}
+                  onPress={() => openPicker(getSectionOptions(), selectedSection, setSelectedSection, 'Select Section')}
+                >
+                  <Text style={pickerButtonText}>{selectedSection}</Text>
+                  <Icon name="menu-down" size={24} color={blackColor} />
+                </TouchableOpacity>
+            </>
+          )}
 
           <Text style={label}>Select Priority</Text>
             <TouchableOpacity
