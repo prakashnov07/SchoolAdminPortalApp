@@ -76,6 +76,16 @@ export default function StudentProfileScreen({ navigation, route }) {
     const handleSelectStudent = async (student) => {
         // Set basic info from picker first
         setSelectedStudent(student);
+
+        // Handle selection for Message screen
+        if (route.params?.fromMessage) {
+            navigation.navigate('SendMessages', {
+                selectedStudent: student,
+                singleStudentMode: true
+            });
+            return;
+        }
+
         setFormData({
             ...student,
             salut: student.salut || '',

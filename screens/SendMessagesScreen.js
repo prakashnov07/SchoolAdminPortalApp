@@ -120,7 +120,7 @@ export default function SendMessagesScreen() {
   /* Removed duplicate menuVisible */
   const navigation = useNavigation();
   const route = useRoute();
-  const { fromSearch, classid: searchClassId, sectionid: searchSectionId, stype, busno, routename: searchRouteVar } = route.params || {};
+  const { fromSearch, classid: searchClassId, sectionid: searchSectionId, stype, busno, routename: searchRouteVar, selectedStudent } = route.params || {};
 
 
   useEffect(() => {
@@ -396,10 +396,21 @@ export default function SendMessagesScreen() {
     let classIdString = '';
     let sectionIdToSend = '';
     let studentTypeToSend = '';
-    let busNoToSend = ''; // 0 usually means all or none, existing API expects number or string? Search used 0 for all.
+    let busNoToSend = ''; 
     let routeNameToSend = '';
+    let enrollmentToSend = '';
 
-    if (fromSearch) {
+    if (selectedStudent) {
+      // Single Student Mode
+      title = `Message for ${selectedStudent.firstname} ${selectedStudent.lastname} (${selectedStudent.enrollment})`;
+
+      // Use student's class and section if available, else standard fallback.
+      // Assuming student object has 'clas' string, but API expects ID? 
+      classIdString = selectedStudent.classid || '';
+      sectionIdToSend = selectedStudent.sectionid || '';
+      enrollmentToSend = selectedStudent.enrollment;
+
+    } else if (fromSearch) {
       // Use params from search
       const displayClass = allClasses.find(c => c.classid === searchClassId)?.classname || 'All';
       const displaySection = allSections.find(s => s.sectionid === searchSectionId)?.sectionname || 'All';
@@ -463,7 +474,7 @@ export default function SendMessagesScreen() {
       title,
       content: messageText,
       classid: classIdString,
-      enr: '', // Enrollment number if individual? 
+      enr: enrollmentToSend || '', 
       owner,
       filepath: '',
       sectionid: sectionIdToSend,
@@ -476,7 +487,8 @@ export default function SendMessagesScreen() {
       stype: studentTypeToSend,
       busno: busNoToSend,
       routename: routeNameToSend,
-      fromSearch: fromSearch ? true : false
+      fromSearch: fromSearch ? true : false,
+      singleStudent: selectedStudent ? true : false
     };
 
     const endpoint = selectedPriority === '3' ? '/save-scheduled-message' : '/savemessage';
@@ -555,6 +567,13 @@ export default function SendMessagesScreen() {
             <View style={{ backgroundColor: 'white', borderRadius: 10, overflow: 'hidden' }}>
               <TouchableOpacity
                 style={[pickerModalItem, { paddingVertical: 15, paddingHorizontal: 20 }]}
+                onPress={() => onNavigate('SendMessages')}
+              >
+                <Text style={[pickerModalItemText, { fontSize: 16 }]}>Send Message</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[pickerModalItem, { paddingVertical: 15, paddingHorizontal: 20 }]}
                 onPress={() => onNavigate('MessageSettingsScreen')}
               >
                 <Text style={[pickerModalItemText, { fontSize: 16 }]}>Message Settings</Text>
@@ -600,7 +619,20 @@ export default function SendMessagesScreen() {
           keyboardShouldPersistTaps="handled"
         >
 
-          {fromSearch ? (
+          {selectedStudent ? (
+            <View style={{ marginBottom: 20, padding: 15, backgroundColor: '#e8f5e9', borderRadius: 10, borderWidth: 1, borderColor: '#a5d6a7' }}>
+              <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2e7d32', marginBottom: 5 }}>Sending to Single Student:</Text>
+              <Text style={{ fontSize: 16, color: '#333', fontWeight: 'bold' }}>
+                {selectedStudent.firstname} {selectedStudent.lastname}
+              </Text>
+              <Text style={{ fontSize: 14, color: '#555' }}>
+                Enrollment: {selectedStudent.enrollment}
+              </Text>
+              <Text style={{ fontSize: 14, color: '#555' }}>
+                Class: {selectedStudent.clas} {selectedStudent.section}
+              </Text>
+            </View>
+          ) : fromSearch ? (
             <View style={{ marginBottom: 20, padding: 15, backgroundColor: '#e3f2fd', borderRadius: 10, borderWidth: 1, borderColor: '#90caf9' }}>
               <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#1565c0', marginBottom: 5 }}>Sending to Search Results:</Text>
 
@@ -619,24 +651,43 @@ export default function SendMessagesScreen() {
             </View>
           ) : (
             <>
-              <TouchableOpacity
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: '#e3f2fd',
-                  padding: 10,
-                  borderRadius: 8,
-                  marginBottom: 15,
-                  borderColor: '#90caf9',
-                  borderWidth: 1
-                }}
-                onPress={() => navigation.navigate('SearchStudentScreen')}
-              >
-                <Icon name="magnify" size={24} color="#1e88e5" style={{ marginRight: 10 }} />
-                <Text style={{ fontSize: 16, color: '#1565c0', fontWeight: '500' }}>Advanced Search</Text>
-                <View style={{ flex: 1 }} />
-                <Icon name="chevron-right" size={24} color="#1e88e5" />
-              </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 }}>
+                    <TouchableOpacity
+                      style={{ 
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        backgroundColor: '#e3f2fd',
+                        padding: 10,
+                        borderRadius: 8, 
+                        marginRight: 5,
+                        borderColor: '#90caf9',
+                        borderWidth: 1
+                      }}
+                      onPress={() => navigation.navigate('SearchStudentScreen')}
+                    >
+                      <Icon name="magnify" size={20} color="#1e88e5" style={{ marginRight: 5 }} />
+                      <Text style={{ fontSize: 14, color: '#1565c0', fontWeight: '500' }}>Adv. Search</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        backgroundColor: '#e8f5e9',
+                        padding: 10,
+                        borderRadius: 8,
+                        marginLeft: 5,
+                        borderColor: '#a5d6a7',
+                        borderWidth: 1
+                      }}
+                      onPress={() => navigation.navigate('StudentProfileScreen', { fromMessage: true })}
+                    >
+                      <Icon name="account" size={20} color="#2e7d32" style={{ marginRight: 5 }} />
+                      <Text style={{ fontSize: 14, color: '#2e7d32', fontWeight: '500' }}>Single Student</Text>
+                    </TouchableOpacity>
+                  </View>
 
                 <Text style={label}>Select Class</Text>
                 <View style={{ width: '100%', backgroundColor: '#d6bee7', borderRadius: 16, borderColor: blackColor, borderWidth: 1, marginBottom: 20, paddingVertical: 5 }}>

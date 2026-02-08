@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   Platform,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
@@ -291,6 +292,40 @@ export default function AdminPanelScreen({ navigation }) {
       navigation.navigate('MarksEntryScreen');
     } else if (item.key === 'studentProfile') {
       navigation.navigate('StudentProfileScreen');
+    } else if (item.key === 'viewQueries') {
+      navigation.navigate('ViewQueriesScreen');
+    } else if (item.key === 'softwareLink') {
+      const url = coreContext.schoolData?.studentimgpath;
+      if (url) {
+        Linking.openURL(url).catch(err => {
+          Alert.alert('Error', 'Could not open the link: ' + err.message);
+        });
+      } else {
+        Alert.alert('Error', 'Software link not found. Please check your internet connection or contact support.');
+      }
+    } else if (item.key === 'accountReports') {
+      const path = coreContext.schoolData?.studentimgpath;
+      const bgcolor = coreContext.schoolData?.erpbg;
+      const grp = coreContext.schoolData?.wgroup;
+      const branchid = coreContext.branchid;
+
+      if (path && bgcolor && grp && branchid) {
+        let app = path.replace('admin', 'apps');
+        app = app + 'MasterLedger.php?branch=' + branchid + '&grp=' + grp + '&appcode=x_yp@84P2S2s55R{>ul]dk%2&bgcolor=' + bgcolor + '&color=e7e7e7';
+
+        Linking.openURL(app).catch(err => {
+          Alert.alert('Error', 'Could not open the link: ' + err.message);
+        });
+      } else {
+        Alert.alert('Error', 'Missing configuration data. Please check logic or internet connection.');
+        console.log("Debug Info:", { path, bgcolor, grp, branchid });
+      }
+    } else if (item.key === 'onlineMaterial') {
+      navigation.navigate('PrepareOnlineMaterialScreen');
+    } else if (item.key === 'onlineExam') {
+      navigation.navigate('ViewOnlineExamsScreen');
+    } else if (item.key === 'onlineClasses') {
+      navigation.navigate('OnlineClassSchedulesScreen');
     } else {
       Alert.alert(item.label, `You clicked on ${item.label}`);
     }

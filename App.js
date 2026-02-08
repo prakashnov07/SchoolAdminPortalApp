@@ -48,6 +48,16 @@ import HolidaysEventScreen from './screens/HolidaysEventScreen';
 import MarksEntryScreen from './screens/MarksEntryScreen';
 import StudentProfileScreen from './screens/StudentProfileScreen';
 import SearchStudentScreen from './screens/SearchStudentScreen';
+import ViewQueriesScreen from './screens/ViewQueriesScreen';
+import PrepareOnlineMaterialScreen from './screens/PrepareOnlineMaterialScreen';
+import ViewOnlineMaterialScreen from './screens/ViewOnlineMaterialScreen';
+import ViewOnlineExamsScreen from './screens/ViewOnlineExamsScreen';
+import CreateOnlineExamScreen from './screens/CreateOnlineExamScreen';
+import ViewOnlineExamQuestionsScreen from './screens/ViewOnlineExamQuestionsScreen';
+import AddOnlineExamQuestionScreen from './screens/AddOnlineExamQuestionScreen';
+import OnlineExamSettingsScreen from './screens/OnlineExamSettingsScreen';
+import OnlineClassSchedulesScreen from './screens/OnlineClassSchedulesScreen';
+import AddOnlineClassScreen from './screens/AddOnlineClassScreen';
 import { CoreProvider } from './context/CoreContext';
 import {StyleProvider} from './context/StyleContext';
 
@@ -79,14 +89,17 @@ function MainTabs() {
         tabBarLabelStyle: { fontSize: 13, fontWeight: 'bold', marginBottom: 5 },
         tabBarStyle: { backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#ddd', height: 80, paddingBottom: 5, paddingTop: 15 },
         tabBarIcon: ({ color, size }) => {
-          let iconName = route.name === 'Messages' ? 'account-circle' : 'account-cog';
+          let iconName = 'account-circle'; // proper default?
+          if (route.name === 'Messages') iconName = 'account-circle';
+          else if (route.name === 'AdminPanel') iconName = 'account-cog';
+
           return <Icon name={iconName} size={30} color={color} />;
         },
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Messages" component={MessagesScreen} />
-      <Tab.Screen name="AdminPanel" component={AdminPanelScreen} />
+      <Tab.Screen name="Messages" component={MessagesScreen} options={{ tabBarLabel: 'Messages' }} />
+      <Tab.Screen name="AdminPanel" component={AdminPanelScreen} options={{ tabBarLabel: 'Admin' }} />
     </Tab.Navigator>
   );
 }
@@ -522,6 +535,107 @@ export default function App() {
               }}
             />
 
+            <Stack.Screen
+              name="ViewQueriesScreen"
+              component={ViewQueriesScreen}
+              options={{
+                title: 'View Queries',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="PrepareOnlineMaterialScreen"
+              component={PrepareOnlineMaterialScreen}
+              options={{
+                title: 'Prepare Online Material',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="ViewOnlineMaterialScreen"
+              component={ViewOnlineMaterialScreen}
+              options={{
+                title: 'View Online Material',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="ViewOnlineExamsScreen"
+              component={ViewOnlineExamsScreen}
+              options={{
+                title: 'Online Exams',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="CreateOnlineExamScreen"
+              component={CreateOnlineExamScreen}
+              options={{
+                title: 'Create/Edit Exam',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="ViewOnlineExamQuestionsScreen"
+              component={ViewOnlineExamQuestionsScreen}
+              options={{
+                title: 'Exam Questions',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="AddOnlineExamQuestionScreen"
+              component={AddOnlineExamQuestionScreen}
+              options={{
+                title: 'Add/Edit Question',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+
+            <Stack.Screen
+              name="OnlineClassSchedulesScreen"
+              component={OnlineClassSchedulesScreen}
+              options={{
+                title: 'Online Classes',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="AddOnlineClassScreen"
+              component={AddOnlineClassScreen}
+              options={{
+                title: 'Schedule Class',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="OnlineExamSettingsScreen"
+              component={OnlineExamSettingsScreen}
+              options={{
+                title: 'Exam Settings',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
         </Stack.Navigator>
       </NavigationContainer>
       </StyleProvider>

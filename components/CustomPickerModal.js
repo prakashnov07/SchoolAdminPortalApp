@@ -9,10 +9,21 @@ export default function CustomPickerModal({
     selectedValue, 
     onSelect, 
     onClose, 
-    onConfirm,
     onReload 
 }) {
     const styleContext = useContext(StyleContext);
+    const [tempSelectedValue, setTempSelectedValue] = React.useState(selectedValue);
+
+    React.useEffect(() => {
+        if (visible) {
+            setTempSelectedValue(selectedValue);
+        }
+    }, [visible, selectedValue]);
+
+    const handleConfirm = () => {
+        onSelect(tempSelectedValue);
+        onClose();
+    };
 
     return (
         <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -35,14 +46,14 @@ export default function CustomPickerModal({
                                     key={idx}
                                     style={[
                                     styleContext.pickerModalItem,
-                                    value === selectedValue && styleContext.pickerModalItemSelected,
+                                        value === tempSelectedValue && styleContext.pickerModalItemSelected,
                                     ]}
-                                    onPress={() => onSelect(value)}
+                                        onPress={() => setTempSelectedValue(value)}
                                 >
                                     <Text
                                     style={[
                                         styleContext.pickerModalItemText,
-                                        value === selectedValue && styleContext.pickerModalItemTextSelected,
+                                                value === tempSelectedValue && styleContext.pickerModalItemTextSelected,
                                     ]}
                                     >
                                     {label}
@@ -66,7 +77,7 @@ export default function CustomPickerModal({
                             <TouchableOpacity style={styleContext.pickerModalButton} onPress={onClose}>
                                 <Text style={[styleContext.pickerModalButtonText, { color: styleContext.mainButtonColor }]}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styleContext.pickerModalButton} onPress={onConfirm}>
+                            <TouchableOpacity style={styleContext.pickerModalButton} onPress={handleConfirm}>
                                 <Text style={[styleContext.pickerModalButtonText, { color: styleContext.mainButtonColor }]}>Confirm</Text>
                             </TouchableOpacity>
                         </View>
