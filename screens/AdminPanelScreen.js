@@ -148,10 +148,10 @@ const adminPanelItems = [
   { key: 'manageStaff', label: 'Manage Staff', icon: 'account-group', color: '#9c27b0' },
   { key: 'addEnquiry', label: 'Add Enquiry', icon: 'account-plus', color: '#e91e63' },
   { key: 'manageCounters', label: 'Manage Counters', icon: 'key', color: '#303f9f' },
-  { key: 'manageFee', label: 'Manage Fee', icon: 'receipt', color: '#388e3c' },
+  { key: 'manageFee', label: 'Manage Fee', icon: 'currency-usd', color: '#388e3c' },
   { key: 'publishResult', label: 'Publish Result', icon: 'trending-up', color: '#388e3c' },
   { key: 'holidaysEvents', label: 'Holidays Events', icon: 'calendar-check', color: '#d32f2f' },
-  { key: 'manageTimetable', label: 'Manage Time-table', icon: 'alarm', color: '#1976d2' },
+  { key: 'marksEntry', label: 'Marks Entry', icon: 'checkbox-marked-circle-outline', color: '#1976d2' },
   { key: 'studentProfile', label: 'Student Profile', icon: 'account', color: '#9c27b0' },
   { key: 'viewQueries', label: 'View Queries', icon: 'comment-alert-outline', color: '#fbc02d' },
   { key: 'googleQuiz', label: 'Google Quiz', icon: 'message-text', color: '#1976d2' },
@@ -277,6 +277,20 @@ export default function AdminPanelScreen({ navigation }) {
       navigation.navigate('UploadReportScreen');
     } else if (item.key === 'manageStaff') {
       navigation.navigate('ManageStaffScreen');
+    } else if (item.key === 'addEnquiry') {
+      navigation.navigate('AddEnquiryScreen');
+    } else if (item.key === 'manageCounters') {
+      navigation.navigate('ManageCounterScreen');
+    } else if (item.key === 'manageFee') {
+      navigation.navigate('AdminFeeReportScreen');
+    } else if (item.key === 'publishResult') {
+      navigation.navigate('PublishResultScreen');
+    } else if (item.key === 'holidaysEvents') {
+      navigation.navigate('HolidaysEventScreen');
+    } else if (item.key === 'marksEntry') {
+      navigation.navigate('MarksEntryScreen');
+    } else if (item.key === 'studentProfile') {
+      navigation.navigate('StudentProfileScreen');
     } else {
       Alert.alert(item.label, `You clicked on ${item.label}`);
     }

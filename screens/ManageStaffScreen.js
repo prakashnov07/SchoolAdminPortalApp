@@ -15,7 +15,7 @@ const StaffItem = ({ item, index, styleContext, navigation }) => {
         borderBottomWidth: 1, 
         borderBottomColor: '#eee',
         marginBottom: 8,
-        borderRadius: 8,
+        borderRadius: 12,
         ...styleContext.card // Inherit card styles if available
     };
 
@@ -99,6 +99,8 @@ export default function ManageStaffScreen({ navigation }) {
     const getFilteredStaffs = () => {
         let filtered = coreContext.staffs || [];
 
+        //  console.log(filtered);
+
         // 1. Filter by Role (Local filtering on the fetched results)
         if (selectedRole) {
             filtered = filtered.filter(s => s.role === selectedRole);
@@ -139,9 +141,8 @@ export default function ManageStaffScreen({ navigation }) {
                 onClose={() => setPickerVisible(false)}
             />
 
-            <View style={{ padding: 16 }}>
                 {/* Header Actions */}
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 10 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 16, paddingTop: 10 }}>
                      <TouchableOpacity 
                         style={[styles.actionButton, { backgroundColor: styleContext.primaryColor || '#6200ea', paddingHorizontal: 16 }]} 
                         onPress={() => navigation.navigate('AddStaffScreen')}
@@ -151,20 +152,21 @@ export default function ManageStaffScreen({ navigation }) {
                     </TouchableOpacity>
                 </View>
                 
-                {/* Search & Filter */}
-                <View style={{ marginBottom: 10 }}>
-                    <View style={[styleContext.inputContainer, { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 8, paddingHorizontal: 10, marginBottom: 10 }]}>
+            {/* Search & Filter - Glass Theme */}
+            <View style={styleContext.glassFilterContainer}>
+                <View style={[styleContext.whitePickerButton, { marginBottom: 10, paddingVertical: 0, paddingHorizontal: 10 }]}>
                          <Icon name="magnify" size={24} color="#999" />
                         <TextInput
                             placeholder="Search by name / Contact..."
-                            style={{ flex: 1, padding: 10, fontSize: 16, color: '#333' }}
+                        placeholderTextColor="#999"
+                        style={{ flex: 1, padding: 12, fontSize: 16, color: '#333' }}
                             value={search}
                             onChangeText={handleSearch}
                         />
                     </View>
 
                     <TouchableOpacity 
-                        style={[styleContext.pickerButton, { backgroundColor: '#fff', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}
+                    style={[styleContext.whitePickerButton, { marginBottom: 0 }]}
                         onPress={() => openPicker('Filter By Role', rolesData(), selectedRole, handleRoleChange)}
                     >
                          <Text style={{ fontSize: 16, color: selectedRole ? '#333' : '#666' }}>
@@ -174,7 +176,7 @@ export default function ManageStaffScreen({ navigation }) {
                     </TouchableOpacity>
                 </View>
 
-            </View>
+
 
             {/* Staff List */}
             <FlatList

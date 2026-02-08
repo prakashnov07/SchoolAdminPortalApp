@@ -974,11 +974,12 @@ export function CoreProvider({ children }) {
     return false;
   };
 
-  const processReceiptCancelRequest = async (requestId, action, content, by) => {
+  const processReceiptCancelRequest = async (requestId, rsessionid, action, content, by) => {
     try {
       const response = await axios.post('/process-receipt', {
         id: requestId,
-        action: action,
+        sessionid: rsessionid,
+        action,
         owner: phone,
         branchid,
         content,

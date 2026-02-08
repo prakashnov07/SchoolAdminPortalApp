@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, HelperText } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, HelperText, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import axios from 'axios';
@@ -165,6 +165,7 @@ export default function AddStaffScreen({ navigation, route }) {
                             value={name}
                             onChangeText={setName}
                             placeholder="Enter Name"
+                            placeholderTextColor="#888"
                             style={{ flex: 1, fontSize: 16, color: styleContext.blackColor }}
                          />
                     </View>
@@ -179,6 +180,7 @@ export default function AddStaffScreen({ navigation, route }) {
                             value={mobile}
                             onChangeText={setMobile}
                             placeholder="Enter Mobile"
+                            placeholderTextColor="#888"
                             keyboardType="phone-pad"
                             maxLength={10}
                             editable={!staff} // Often mobile is primary key or restricted on edit
@@ -194,8 +196,10 @@ export default function AddStaffScreen({ navigation, route }) {
                          <Icon name="card-account-details" size={20} color="#666" style={{ marginRight: 8 }} />
                          <TextInput 
                             value={empid}
+                            editable={false}
                             onChangeText={setEmpid}
                             placeholder="Enter Employee ID"
+                            placeholderTextColor="#888"
                             style={{ flex: 1, fontSize: 16, color: styleContext.blackColor }}
                          />
                     </View>
@@ -262,4 +266,4 @@ export default function AddStaffScreen({ navigation, route }) {
     );
 }
 
-import { TextInput } from 'react-native'; // Explicit import needed for inside components
+

@@ -222,9 +222,9 @@ export default function DisciplineProfileScreen({ navigation, route }) {
                                 <Text style={styles.studentInfo}>Class: {student?.clas} - {student?.section} | Roll: {student?.roll}</Text>
                                 <Text style={styles.studentInfo}>{coreContext.schoolData?.smallReg || 'Reg No'}: {student?.scholarno} | {coreContext.schoolData?.smallEnr || 'Enr'}: {student?.enrollment}</Text>
                              </View>
-                             {/* DP Status link mimicking legacy if needed, or simple indicator */}
+                            {/* DP Status formatted properly */}
                              {student?.dp && (
-                                  <Text style={{ color: 'red', fontWeight: 'bold', marginTop: 5 }}>Discipline Profile Issues: {student?.dp}</Text>
+                                <Text style={{ color: student.dp, fontWeight: 'bold', marginTop: 5 }}>Discipline Remarks Found</Text>
                              )}
                          </View>
                      )}

@@ -19,6 +19,7 @@ import Toast from 'react-native-toast-message';
 import { CoreContext } from '../context/CoreContext';
 import { StyleContext } from '../context/StyleContext';
 import AttendanceMenuModal from '../components/AttendanceMenuModal';
+import StudentPicker from '../components/StudentPicker';
 
 export default function ViewStudentAttendanceScreen({ navigation, route }) {
     const coreContext = useContext(CoreContext);
@@ -27,13 +28,7 @@ export default function ViewStudentAttendanceScreen({ navigation, route }) {
 
     // State
     const [menuVisible, setMenuVisible] = useState(false);
-    
-    // Search State
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
-    const [searching, setSearching] = useState(false);
-    const [showResults, setShowResults] = useState(false);
-    
+
     // Selected Student State
     const [selectedStudent, setSelectedStudent] = useState(null);
     
@@ -71,34 +66,8 @@ export default function ViewStudentAttendanceScreen({ navigation, route }) {
         }
     }, [selectedStudent, currentMonth, currentYear]);
 
-    const handleSearch = (text) => {
-        setSearchQuery(text);
-        if (text.length > 2) {
-            setSearching(true);
-            setShowResults(true);
-            axios.get('/filter-search-student-2', { 
-                params: { filter: text, branchid: coreContext.branchid } 
-            })
-            .then(res => {
-                setSearchResults(res.data.allStudents || []);
-                setSearching(false);
-            })
-            .catch(err => {
-                console.error(err);
-                setSearching(false);
-            });
-        } else {
-            setSearchResults([]);
-            setShowResults(false);
-        }
-    };
-
     const handleSelectStudent = (student) => {
         setSelectedStudent(student);
-        const name = student.name || `${student.firstname} ${student.lastname}`;
-        setSearchQuery(name);
-        setShowResults(false);
-        // Reset query text to show name
     };
 
     const fetchAttendanceAndHolidays = async (month) => {
@@ -186,35 +155,10 @@ export default function ViewStudentAttendanceScreen({ navigation, route }) {
             
             <View style={styles.container}>
                 {/* Search Bar */}
-                <View style={styles.searchContainer}>
-                    <Icon name="account-search" size={24} color="#666" style={{ marginRight: 10 }} />
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="Search Student (Name, ID, Roll)"
-                        value={searchQuery}
-                        onChangeText={handleSearch}
-                    />
-                    {searching && <ActivityIndicator size="small" color="#666" />}
-                </View>
-
-                {/* Search Results Overlay */}
-                {showResults && searchResults.length > 0 && (
-                    <View style={styles.resultsList}>
-                        <FlatList
-                            data={searchResults}
-                            keyExtractor={item => item.enrollment.toString()}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity 
-                                    style={styles.resultItem} 
-                                    onPress={() => handleSelectStudent(item)}
-                                >
-                                    <Text style={styles.resultName}>{item.firstname} {item.lastname}</Text>
-                                    <Text style={styles.resultInfo}>{item.clas} {item.section} | Roll: {item.roll} | {coreContext.schoolData.smallEnr}: {item.enrollment} | {coreContext.schoolData.smallReg}: {item.scholarno}</Text>
-                                </TouchableOpacity>
-                            )}
-                        />
-                    </View>
-                )}
+                <StudentPicker
+                    onSelect={handleSelectStudent}
+                    placeholder=""
+                />
 
                 {/* Selected Student Info */}
                 {selectedStudent && (

@@ -219,6 +219,52 @@ export function StyleProvider({ children }) {
 
     const titleColor = '#4a00e0'; // Global Title Color (Deep Indigo)
 
+    // Global Glassmorphism Filter Container (Extracted from ManageAttendanceScreen)
+    const glassFilterContainer = {
+        backgroundColor: 'rgba(255,255,255,0.7)',
+        padding: 15,
+        margin: 15,
+        borderRadius: 15,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.5)',
+        ...Platform.select({
+            ios: {
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.1,
+                shadowRadius: 2,
+            },
+            android: {
+                elevation: 2,
+            },
+        }),
+    };
+
+    // White Button/Input style for inside Glass Container
+    const whitePickerButton = {
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        backgroundColor: '#fff',
+        marginBottom: 10,
+    };
+
+    // Search Button Style
+    const searchButton = {
+        backgroundColor: '#6a00ff',
+        borderRadius: 10,
+        paddingVertical: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 2,
+    };
+
     return (
         <StyleContext.Provider value={{
             mainButtonColor,
@@ -260,6 +306,20 @@ export function StyleProvider({ children }) {
             pickerModalButtons, // Added
             pickerModalButton, // Added
             pickerModalButtonText, // Added
+            glassFilterContainer, // Added Global
+            whitePickerButton, // Ensure this matches ManageAttendanceScreen style
+            standardPickerButton: { // Explicitly named for clarity
+                backgroundColor: '#fff',
+                borderRadius: 10,
+                paddingVertical: 12,
+                paddingHorizontal: 15,
+                borderWidth: 1,
+                borderColor: '#ddd',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+            },
+            searchButton, // Added Global
         }}>
             {children}
         </StyleContext.Provider>

@@ -95,14 +95,14 @@ const SqlMessageItem = ({ item }) => {
       if(success) setApprovalStatus('approved');
     }
     else if (action === 'decline-receipt-cancellation') {
-      await handleProcessReceiptCancelRequest(item.topicid, 'declined');
+      await handleProcessReceiptCancelRequest(item.topicid, item.resessionid, 'declined');
     }
     else if (action === 'approve-receipt-cancellation') {
-      await handleProcessReceiptCancelRequest(item.topicid, 'approved');
+      await handleProcessReceiptCancelRequest(item.topicid, item.resessionid, 'approved');
     }
   };
 
-  const handleProcessReceiptCancelRequest = async (requestId, action) => {
+  const handleProcessReceiptCancelRequest = async (requestId, resessionid, action) => {
       const contentStr = item.content || '';
       const content1 = contentStr.split('Reason :');
       let contentVal = '';
@@ -114,7 +114,7 @@ const SqlMessageItem = ({ item }) => {
           byVal = content2[1];
       }
       
-      const success = await processReceiptCancelRequest(requestId, action, contentVal, byVal);
+    const success = await processReceiptCancelRequest(requestId, resessionid, action, contentVal, byVal);
       if (success) {
           setApprovalStatus(action);
       }
@@ -227,7 +227,7 @@ const SqlMessageItem = ({ item }) => {
   };
   
   // Render Data Preparation
-  const { title, dat, msgSentDate, filepath, name, rtime, filepaths } = item; 
+  const { title, dat, msgSentDate, filepath, name, rtime, filepaths, resessionid } = item; 
 
   let content = item.concessionApprovalStatus ? item.content + ' : ' + approvalStatus : item.content;
   let by = '';

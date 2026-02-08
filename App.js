@@ -29,11 +29,25 @@ import UploadReportScreen from './screens/UploadReportScreen';
 import ViewReportScreen from './screens/ViewReportScreen';
 import ViewReportDateScreen from './screens/ViewReportDateScreen';
 import CategoriesScreen from './screens/CategoriesScreen';
+import ManageCounterScreen from './screens/ManageCounterScreen';
 import ManageStaffScreen from './screens/ManageStaffScreen';
 import AddStaffScreen from './screens/AddStaffScreen';
 import StaffProfileScreen from './screens/StaffProfileScreen';
 import StaffRemarksScreen from './screens/StaffRemarksScreen';
 import DisciplineProfileScreen from './screens/DisciplineProfileScreen';
+import SalaryDetailsScreen from './screens/SalaryDetailsScreen';
+import StaffAttendanceScreen from './screens/StaffAttendanceScreen';
+import AdvancePaymentScreen from './screens/AdvancePaymentScreen';
+import AddEnquiryScreen from './screens/AddEnquiryScreen';
+import EnquiryListScreen from './screens/EnquiryListScreen';
+import AdminFeeReportScreen from './screens/AdminFeeReportScreen';
+import FeeReminderScreen from './screens/FeeReminderScreen';
+import DefaulterListScreen from './screens/DefaulterListScreen';
+import PublishResultScreen from './screens/PublishResultScreen';
+import HolidaysEventScreen from './screens/HolidaysEventScreen';
+import MarksEntryScreen from './screens/MarksEntryScreen';
+import StudentProfileScreen from './screens/StudentProfileScreen';
+import SearchStudentScreen from './screens/SearchStudentScreen';
 import { CoreProvider } from './context/CoreContext';
 import {StyleProvider} from './context/StyleContext';
 
@@ -51,11 +65,7 @@ const Tab = createBottomTabNavigator();
 
 import { LayoutAnimation, UIManager, Platform } from 'react-native';
 
-if (Platform.OS === 'android') {
-  if (UIManager.setLayoutAnimationEnabledExperimental) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-  }
-}
+
 
 const mainButtonColor = '#6a00ff';
 const mainTextColor = '#fff';
@@ -294,6 +304,11 @@ export default function App() {
               }}
             />
             <Stack.Screen
+              name="ManageCounterScreen"
+              component={ManageCounterScreen}
+              options={{ title: 'Manage Counters' }}
+            />
+            <Stack.Screen
               name="ManageStaffScreen"
               component={ManageStaffScreen}
               options={{
@@ -353,6 +368,66 @@ export default function App() {
                 headerTitleStyle: { fontWeight: 'bold' },
               }}
             />
+            <Stack.Screen
+              name="SalaryDetailsScreen"
+              component={SalaryDetailsScreen}
+              options={{
+                title: 'Salary Details',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="StaffAttendanceScreen"
+              component={StaffAttendanceScreen}
+              options={{
+                title: 'Staff Attendance',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="AdvancePaymentScreen"
+              component={AdvancePaymentScreen}
+              options={{
+                title: 'Advance Payment',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="AddEnquiryScreen"
+              component={AddEnquiryScreen}
+              options={{
+                title: 'Add Enquiry',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="EnquiryListScreen"
+              component={EnquiryListScreen}
+              options={{
+                title: 'Enquiries List',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="AdminFeeReportScreen"
+              component={AdminFeeReportScreen}
+              options={{
+                title: 'Fee Report',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
           <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
           <Stack.Screen
             name="SendMessages"
@@ -371,6 +446,77 @@ export default function App() {
               options={{
                 title: 'Message Settings',
                 headerStyle: { backgroundColor: mainButtonColor },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="FeeReminderScreen"
+              component={FeeReminderScreen}
+              options={{
+                title: 'Fee Reminder',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="DefaulterListScreen"
+              component={DefaulterListScreen}
+              options={{
+                title: 'Defaulter List',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="PublishResultScreen"
+              component={PublishResultScreen}
+              options={{
+                title: 'Publish Result',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="HolidaysEventScreen"
+              component={HolidaysEventScreen}
+              options={{
+                title: 'Holidays / Events',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+
+            <Stack.Screen
+              name="MarksEntryScreen"
+              component={MarksEntryScreen}
+              options={{
+                title: 'Marks Entry',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="StudentProfileScreen"
+              component={StudentProfileScreen}
+              options={{
+                title: 'Student Profile',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="SearchStudentScreen"
+              component={SearchStudentScreen}
+              options={{
+                title: 'Search by Class',
+                headerStyle: { backgroundColor: '#5a45d4' },
                 headerTintColor: '#fff',
                 headerTitleStyle: { fontWeight: 'bold' },
               }}
