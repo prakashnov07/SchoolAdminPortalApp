@@ -5,6 +5,7 @@ import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { CoreContext } from '../context/CoreContext';
 import { StyleContext } from '../context/StyleContext';
 import CustomPickerModal from '../components/CustomPickerModal'; // Assuming this exists or we use similar logic
+import StaffMenu from '../components/StaffMenu';
 
 const StaffItem = ({ item, index, styleContext, navigation }) => {
     
@@ -54,6 +55,8 @@ const StaffItem = ({ item, index, styleContext, navigation }) => {
     );
 };
 
+// ... (rest of imports)
+
 export default function ManageStaffScreen({ navigation }) {
     const coreContext = useContext(CoreContext);
     const styleContext = useContext(StyleContext);
@@ -62,6 +65,7 @@ export default function ManageStaffScreen({ navigation }) {
     const [search, setSearch] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
     const [loading, setLoading] = useState(false);
+    const [menuVisible, setMenuVisible] = useState(false);
     
     // For Picker Modal
     const [pickerVisible, setPickerVisible] = useState(false);
@@ -71,10 +75,18 @@ export default function ManageStaffScreen({ navigation }) {
     const [onPickerSelect, setOnPickerSelect] = useState(() => {});
 
     useEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <TouchableOpacity onPress={() => setMenuVisible(true)} style={{ marginRight: 15 }}>
+                    <Icon name="dots-vertical" size={26} color="#fff" />
+                </TouchableOpacity>
+            ),
+        });
+
         // Fetch initials - passing undefined to let backend handle default
         coreContext.fetchStaffs();
         coreContext.fetchRoles();
-    }, []);
+    }, [navigation]);
 
     const openPicker = (title, data, currentValue, onSelect) => {
         setPickerTitle(title);
@@ -129,6 +141,7 @@ export default function ManageStaffScreen({ navigation }) {
 
     return (
         <SafeAreaView style={styleContext.background} edges={['bottom', 'left', 'right']}>
+            <StaffMenu visible={menuVisible} onClose={() => setMenuVisible(false)} />
              <CustomPickerModal
                 visible={pickerVisible}
                 title={pickerTitle}

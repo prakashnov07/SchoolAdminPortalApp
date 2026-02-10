@@ -30,7 +30,7 @@ const OnlineExamMenu = ({ visible, onClose }) => {
         { label: 'Exam List', icon: 'format-list-bulleted', action: () => navigation.navigate('ViewOnlineExamsScreen') },
         { label: 'Add Paper', icon: 'plus-circle-outline', action: () => navigation.navigate('CreateOnlineExamScreen') },
         { label: 'Exam Settings', icon: 'cog-outline', action: () => navigation.navigate('OnlineExamSettingsScreen') },
-        { label: 'Admin Panel', icon: 'view-grid-outline', action: () => navigation.navigate('AdminPanelScreen') },
+        { label: 'Admin Panel', icon: 'view-grid-outline', action: () => navigation.navigate('AdminPanel') },
     ];
 
     return (

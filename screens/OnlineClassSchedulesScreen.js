@@ -59,9 +59,7 @@ const OnlineClassSchedulesScreen = ({ navigation }) => {
     const fetchClasses = async () => {
         setLoading(true);
         try {
-            console.log('DEBUG: Context Values:', { role, branchid, phone });
             const listStaff = (role === 'admin' || role === 'super' || role === 'tech' || role === 'principal') ? (staff || '') : phone;
-            console.log('DEBUG: Fetching classes with params:', { day, staff: listStaff, classid: cls, sectionid, branchid, role });
             
             const params = {
                 day, 
@@ -74,9 +72,7 @@ const OnlineClassSchedulesScreen = ({ navigation }) => {
             };
 
             const response = await axios.get('/online-classes-staff', { params });
-            console.log('Classes Response URL:', response.config.url);
-            console.log('Classes Response:', response.data);
-            const fetchedClasses = response.data.classes || [];
+            const fetchedClasses = response.data.allClasses || [];
             if (fetchedClasses.length === 0) {
                  Toast.show({ type: 'info', text1: 'No schedules found' });
             }
@@ -134,7 +130,7 @@ const OnlineClassSchedulesScreen = ({ navigation }) => {
     };
 
     const renderItem = ({ item }) => (
-        <View style={[styles.card, { backgroundColor: item.isactive === 'yes' ? styleContext.cardContainerStyle.backgroundColor : '#e0e0e0' }]}>
+        <View style={[styles.card, { backgroundColor: item.isactive === 'yes' ? (styleContext.card?.backgroundColor || '#fff') : '#e0e0e0' }]}>
             <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle}>Class: {item.cls} {item.section}</Text>
                 <View style={styles.statusBadge}>

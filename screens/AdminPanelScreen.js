@@ -155,13 +155,15 @@ const adminPanelItems = [
   { key: 'marksEntry', label: 'Marks Entry', icon: 'checkbox-marked-circle-outline', color: '#1976d2' },
   { key: 'studentProfile', label: 'Student Profile', icon: 'account', color: '#9c27b0' },
   { key: 'viewQueries', label: 'View Queries', icon: 'comment-alert-outline', color: '#fbc02d' },
-  { key: 'googleQuiz', label: 'Google Quiz', icon: 'message-text', color: '#1976d2' },
   { key: 'softwareLink', label: 'Software Link', icon: 'file-document', color: '#e91e63' },
   { key: 'accountReports', label: 'Account Reports', icon: 'currency-usd', color: '#388e3c' },
   { key: 'onlineMaterial', label: 'Online Material', icon: 'bookmark', color: '#fbc02d' },
   { key: 'onlineExam', label: 'Online Exam', icon: 'message-text-outline', color: '#9c27b0' },
   { key: 'onlineClasses', label: 'Online Classes', icon: 'bookmark-outline', color: '#1976d2' },
   { key: 'transportGPS', label: 'Transport GPS', icon: 'train-car', color: '#1976d2' },
+
+  { key: 'leavePlanner', label: 'Leave Planner', icon: 'calendar-clock', color: '#f57c00' },
+  { key: 'myProfile', label: 'My Profile', icon: 'account-circle', color: '#9c27b0' },
 ];
 
 function AdminHeader({ onLogout }) {

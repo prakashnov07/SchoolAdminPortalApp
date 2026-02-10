@@ -29,7 +29,9 @@ const OnlineClassMenu = ({ visible, onClose }) => {
     const menuItems = [
         { label: 'Schedule List', icon: 'format-list-bulleted', action: () => navigation.navigate('OnlineClassSchedulesScreen') },
         { label: 'Add Schedule', icon: 'plus-circle-outline', action: () => navigation.navigate('AddOnlineClassScreen') },
-        { label: 'Admin Panel', icon: 'view-grid-outline', action: () => navigation.navigate('AdminPanelScreen') },
+        { label: 'Online Class Report', icon: 'file-chart-outline', action: () => navigation.navigate('OnlineClassReportScreen') },
+        { label: 'Online Class Settings', icon: 'cog-outline', action: () => navigation.navigate('OnlineClassSettingsScreen') },
+        { label: 'Admin Panel', icon: 'view-grid-outline', action: () => navigation.navigate('AdminPanel') },
     ];
 
     return (

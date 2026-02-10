@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, ActivityIndicator } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+
 import Toast from 'react-native-toast-message';
 import axios from 'axios';
 import { StyleContext } from '../context/StyleContext';
 import { CoreContext } from '../context/CoreContext';
 import OnlineClassMenu from '../components/OnlineClassMenu';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const DAYS_OF_WEEK = [
     { id: 'Sunday', name: 'Sunday' },
@@ -24,6 +25,11 @@ const AddOnlineClassScreen = ({ navigation, route }) => {
     const [classPickerVisible, setClassPickerVisible] = useState(false);
     const [sectionPickerVisible, setSectionPickerVisible] = useState(false);
     const [subjectPickerVisible, setSubjectPickerVisible] = useState(false);
+    const [allowQueriesVisible, setAllowQueriesVisible] = useState(false);
+    const [hourVisible, setHourVisible] = useState(false);
+    const [minuteVisible, setMinuteVisible] = useState(false);
+    const [ampmVisible, setAmpmVisible] = useState(false);
+    const [nomVisible, setNomVisible] = useState(false);
     const { copySchedule } = route.params || {};
     const isEdit = !!copySchedule;
     
@@ -32,7 +38,8 @@ const AddOnlineClassScreen = ({ navigation, route }) => {
         phone, branchid,
         allClasses, getAllClasses,
         allSections, getAllSections,
-        subjects, fetchSubjects
+        subjects, fetchSubjects,
+        classUrl
     } = useContext(CoreContext);
     
     // Form State
@@ -43,7 +50,7 @@ const AddOnlineClassScreen = ({ navigation, route }) => {
     const [hour, setHour] = useState('');
     const [minute, setMinute] = useState('');
     const [ampm, setAmpm] = useState('');
-    const [link, setLink] = useState(copySchedule?.link || '');
+    const [link, setLink] = useState(copySchedule?.link || classUrl || '');
     const [duration, setDuration] = useState(copySchedule?.duration_in_min?.toString() || '');
     const [nom, setNom] = useState(copySchedule?.nom ? parseInt(copySchedule.nom).toString() : '');
     const [selectedDays, setSelectedDays] = useState([]);
@@ -53,7 +60,8 @@ const AddOnlineClassScreen = ({ navigation, route }) => {
         if (!allClasses || allClasses.length === 0) getAllClasses();
         if (!allSections || allSections.length === 0) getAllSections();
         if (!subjects || subjects.length === 0) fetchSubjects();
-    }, []);
+        if (classUrl && !link) setLink(classUrl);
+    }, [classUrl]);
 
     useEffect(() => {
         if (isEdit && copySchedule) {
@@ -166,7 +174,6 @@ const AddOnlineClassScreen = ({ navigation, route }) => {
                 <TouchableOpacity 
                     style={styles.pickerTrigger} 
                     onPress={() => setClassPickerVisible(true)}
-                    disabled={isEdit} // Legacy allows parsing but maybe locked editing?
                 >
                     <Text style={styles.pickerText}>
                         {classId ? (allClasses.find(c => c.classid === classId)?.classname || classId) : 'Select Class'}
@@ -224,43 +231,41 @@ const AddOnlineClassScreen = ({ navigation, route }) => {
                 />
 
                 <Text style={styles.label}>Allow Questions?</Text>
-                <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={allowQueries}
-                        onValueChange={setAllowQueries}
-                    >
-                        <Picker.Item label="Select" value="" />
-                        <Picker.Item label="Yes" value="yes" />
-                        <Picker.Item label="No" value="no" />
-                    </Picker>
-                </View>
+                <TouchableOpacity
+                    style={styles.pickerTrigger}
+                    onPress={() => setAllowQueriesVisible(true)}
+                >
+                    <Text style={styles.pickerText}>
+                        {allowQueries ? (allowQueries === 'yes' ? 'Yes' : 'No') : 'Select'}
+                    </Text>
+                    <MaterialIcons name="arrow-drop-down" size={24} color="#333" />
+                </TouchableOpacity>
 
                 <Text style={styles.label}>Start Time</Text>
                 <View style={styles.timeRow}>
-                    <View style={[styles.pickerContainer, { flex: 1, marginRight: 5 }]}>
-                         <Picker selectedValue={hour} onValueChange={setHour}>
-                            <Picker.Item label="Hr" value="" />
-                            {Array.from({length: 12}, (_, i) => i + 1).map(h => {
-                                const val = h < 10 ? `0${h}` : `${h}`;
-                                return <Picker.Item key={val} label={val} value={val} />
-                            })}
-                         </Picker>
-                    </View>
-                    <View style={[styles.pickerContainer, { flex: 1, marginRight: 5 }]}>
-                         <Picker selectedValue={minute} onValueChange={setMinute}>
-                            <Picker.Item label="Min" value="" />
-                            {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map(m => 
-                                <Picker.Item key={m} label={m} value={m} />
-                            )}
-                         </Picker>
-                    </View>
-                    <View style={[styles.pickerContainer, { flex: 1 }]}>
-                         <Picker selectedValue={ampm} onValueChange={setAmpm}>
-                            <Picker.Item label="AM/PM" value="" />
-                            <Picker.Item label="AM" value="AM" />
-                            <Picker.Item label="PM" value="PM" />
-                         </Picker>
-                    </View>
+                    <TouchableOpacity
+                        style={[styles.pickerTrigger, { flex: 1, marginRight: 5, marginBottom: 0 }]}
+                        onPress={() => setHourVisible(true)}
+                    >
+                        <Text style={styles.pickerText}>{hour || 'Hr'}</Text>
+                        <MaterialIcons name="arrow-drop-down" size={24} color="#333" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.pickerTrigger, { flex: 1, marginRight: 5, marginBottom: 0 }]}
+                        onPress={() => setMinuteVisible(true)}
+                    >
+                        <Text style={styles.pickerText}>{minute || 'Min'}</Text>
+                        <MaterialIcons name="arrow-drop-down" size={24} color="#333" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.pickerTrigger, { flex: 1, marginBottom: 0 }]}
+                        onPress={() => setAmpmVisible(true)}
+                    >
+                        <Text style={styles.pickerText}>{ampm || 'AM/PM'}</Text>
+                        <MaterialIcons name="arrow-drop-down" size={24} color="#333" />
+                    </TouchableOpacity>
                 </View>
 
                 <Text style={styles.label}>Duration (Minutes)</Text>
@@ -294,34 +299,115 @@ const AddOnlineClassScreen = ({ navigation, route }) => {
 
                 <Text style={styles.label}>Meeting Link</Text>
                 <TextInput
-                    style={[styles.input, { height: 80 }]}
+                    style={[styles.input, { height: 80, textAlignVertical: 'top', backgroundColor: classUrl ? '#e0e0e0' : '#f9f9f9', color: '#000' }]} // textAlignVertical for Android, grey if disabled
                     value={link}
                     onChangeText={setLink}
                     multiline
+                    editable={!classUrl}
                     placeholder="Enter Zoom/Meet link here"
+                    placeholderTextColor="#888"
                 />
 
                 <Text style={styles.label}>Fee Paid Till Month</Text>
-                 <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={nom}
-                        onValueChange={setNom}
-                    >
-                        <Picker.Item label="No Restriction" value="0" />
-                        <Picker.Item label="January" value="10" />
-                        <Picker.Item label="February" value="11" />
-                        <Picker.Item label="March" value="12" />
-                        <Picker.Item label="April" value="1" />
-                        <Picker.Item label="May" value="2" />
-                        <Picker.Item label="June" value="3" />
-                        <Picker.Item label="July" value="4" />
-                        <Picker.Item label="August" value="5" />
-                        <Picker.Item label="September" value="6" />
-                        <Picker.Item label="October" value="7" />
-                        <Picker.Item label="November" value="8" />
-                        <Picker.Item label="December" value="9" />
-                    </Picker>
-                </View>
+                <TouchableOpacity
+                    style={styles.pickerTrigger}
+                    onPress={() => setNomVisible(true)}
+                >
+                    <Text style={styles.pickerText}>
+                        {nom ? (
+                            nom === '0' ? 'No Restriction' :
+                                nom === '10' ? 'January' :
+                                    nom === '11' ? 'February' :
+                                        nom === '12' ? 'March' :
+                                            nom === '1' ? 'April' :
+                                                nom === '2' ? 'May' :
+                                                    nom === '3' ? 'June' :
+                                                        nom === '4' ? 'July' :
+                                                            nom === '5' ? 'August' :
+                                                                nom === '6' ? 'September' :
+                                                                    nom === '7' ? 'October' :
+                                                                        nom === '8' ? 'November' :
+                                                                            nom === '9' ? 'December' : nom
+                        ) : 'Select Month'}
+                    </Text>
+                    <MaterialIcons name="arrow-drop-down" size={24} color="#333" />
+                </TouchableOpacity>
+
+                <CustomPickerModal
+                    visible={allowQueriesVisible}
+                    title="Allow Questions?"
+                    data={[
+                        { label: 'Select', value: '' },
+                        { label: 'Yes', value: 'yes' },
+                        { label: 'No', value: 'no' }
+                    ]}
+                    selectedValue={allowQueries}
+                    onSelect={setAllowQueries}
+                    onClose={() => setAllowQueriesVisible(false)}
+                />
+
+                <CustomPickerModal
+                    visible={hourVisible}
+                    title="Select Hour"
+                    data={[
+                        { label: 'Hr', value: '' },
+                        ...Array.from({ length: 12 }, (_, i) => {
+                            const val = i + 1 < 10 ? `0${i + 1}` : `${i + 1}`;
+                            return { label: val, value: val };
+                        })
+                    ]}
+                    selectedValue={hour}
+                    onSelect={setHour}
+                    onClose={() => setHourVisible(false)}
+                />
+
+                <CustomPickerModal
+                    visible={minuteVisible}
+                    title="Select Minute"
+                    data={[
+                        { label: 'Min', value: '' },
+                        ...['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map(m => ({ label: m, value: m }))
+                    ]}
+                    selectedValue={minute}
+                    onSelect={setMinute}
+                    onClose={() => setMinuteVisible(false)}
+                />
+
+                <CustomPickerModal
+                    visible={ampmVisible}
+                    title="Select AM/PM"
+                    data={[
+                        { label: 'AM/PM', value: '' },
+                        { label: 'AM', value: 'AM' },
+                        { label: 'PM', value: 'PM' }
+                    ]}
+                    selectedValue={ampm}
+                    onSelect={setAmpm}
+                    onClose={() => setAmpmVisible(false)}
+                />
+
+                <CustomPickerModal
+                    visible={nomVisible}
+                    title="Select Fee Month"
+                    data={[
+                        { label: "No Restriction", value: "0" },
+                        { label: "January", value: "10" },
+                        { label: "February", value: "11" },
+                        { label: "March", value: "12" },
+                        { label: "April", value: "1" },
+                        { label: "May", value: "2" },
+                        { label: "June", value: "3" },
+                        { label: "July", value: "4" },
+                        { label: "August", value: "5" },
+                        { label: "September", value: "6" },
+                        { label: "October", value: "7" },
+                        { label: "November", value: "8" },
+                        { label: "December", value: "9" }
+                    ]}
+                    selectedValue={nom}
+                    onSelect={setNom}
+                    onClose={() => setNomVisible(false)}
+                />
 
                 <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading}>
                     {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>{isEdit ? 'Update Schedule' : 'Schedule Class'}</Text>}
@@ -385,6 +471,7 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         backgroundColor: '#f9f9f9',
         fontSize: 16,
+        color: '#000', // Ensure text is black
     },
     daysContainer: {
         flexDirection: 'row',

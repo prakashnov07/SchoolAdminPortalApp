@@ -1,6 +1,8 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import OnlineClassReportScreen from './screens/OnlineClassReportScreen';
+import LeaveApplicationScreen from './screens/LeaveApplicationScreen';
 import axios from 'axios';
 
 import MobileNumberVerificationScreen from './screens/MobileNumberVerificationScreen';
@@ -37,6 +39,11 @@ import StaffRemarksScreen from './screens/StaffRemarksScreen';
 import DisciplineProfileScreen from './screens/DisciplineProfileScreen';
 import SalaryDetailsScreen from './screens/SalaryDetailsScreen';
 import StaffAttendanceScreen from './screens/StaffAttendanceScreen';
+import MarkStaffAttendanceScreen from './screens/MarkStaffAttendanceScreen';
+import StaffAttendanceReportScreen from './screens/StaffAttendanceReportScreen';
+import ManualStaffAttendanceScreen from './screens/ManualStaffAttendanceScreen';
+
+import EmployeeAttendanceListScreen from './screens/EmployeeAttendanceListScreen';
 import AdvancePaymentScreen from './screens/AdvancePaymentScreen';
 import AddEnquiryScreen from './screens/AddEnquiryScreen';
 import EnquiryListScreen from './screens/EnquiryListScreen';
@@ -402,6 +409,56 @@ export default function App() {
               }}
             />
             <Stack.Screen
+              name="MarkStaffAttendanceScreen"
+              component={MarkStaffAttendanceScreen}
+              options={{
+                title: 'Mark Attendance',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="StaffAttendanceReportScreen"
+              component={StaffAttendanceReportScreen}
+              options={{
+                title: 'Staff Attendance Report',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="ManualStaffAttendanceScreen"
+              component={ManualStaffAttendanceScreen}
+              options={{
+                title: 'Manual Staff Attendance',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="LeaveApplicationScreen"
+              component={LeaveApplicationScreen}
+              options={{
+                title: 'Leave Applications',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="EmployeeAttendanceListScreen"
+              component={EmployeeAttendanceListScreen}
+              options={{
+                title: 'Employee Attendance List',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
               name="AdvancePaymentScreen"
               component={AdvancePaymentScreen}
               options={{
@@ -631,6 +688,46 @@ export default function App() {
               component={OnlineExamSettingsScreen}
               options={{
                 title: 'Exam Settings',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="AddOnlineQuestionPaperScreen"
+              component={require('./screens/AddOnlineQuestionPaperScreen').default}
+              options={{
+                title: 'Add Question Paper',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="OnlineClassReportScreen"
+              component={OnlineClassReportScreen}
+              options={{
+                title: 'Online Class Report',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="OnlineClassSettingsScreen"
+              component={require('./screens/OnlineClassSettingsScreen').default}
+              options={{
+                title: 'Class Settings',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="OnlineClassStudentsScreen"
+              component={require('./screens/OnlineClassStudentsScreen').default}
+              options={{
+                title: 'Students List',
                 headerStyle: { backgroundColor: '#5a45d4' },
                 headerTintColor: '#fff',
                 headerTitleStyle: { fontWeight: 'bold' },

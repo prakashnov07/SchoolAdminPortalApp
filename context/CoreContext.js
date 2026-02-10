@@ -582,6 +582,20 @@ export function CoreProvider({ children }) {
 
 
 
+  const updateClassUrl = async (url) => {
+    setClassUrl(url);
+    try {
+      const value = await AsyncStorage.getItem('@schoolapp:core');
+      if (value !== null) {
+        const core = JSON.parse(value);
+        const newValue = { ...core, classUrl: url };
+        await AsyncStorage.setItem('@schoolapp:core', JSON.stringify(newValue));
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   const deleteAsyncData = async (branchid) => {
 
     try {
@@ -619,7 +633,7 @@ export function CoreProvider({ children }) {
         console.log('test', test);
 
         if (test) {
-          setClassUrl(test.class_url);
+          updateClassUrl(test.class_url);
 
 
 
@@ -778,12 +792,16 @@ export function CoreProvider({ children }) {
     axios.defaults.params = { medium: 'app', branchid: branchid, owner: phone, enrid: id };
   }
 
+
+
   const getAsyncData = async (navigation) => {
     try {
       const value = await AsyncStorage.getItem('@schoolapp:core');
       if (value !== null) {
-        const { phone, id, branchid, verified, role, utype } = JSON.parse(value);
+        const { phone, id, branchid, verified, role, utype, classUrl } = JSON.parse(value);
         setCoreValues(phone, id, branchid, verified, role, utype);
+        if (classUrl) setClassUrl(classUrl);
+
         const branch = grpBranches.find(b => b.branchid === branchid);
       //  console.log('branch found in getAsyncData', branch);
         setBranch(branch);
@@ -1011,6 +1029,8 @@ export function CoreProvider({ children }) {
     setOtp,
     setBranchid,
     grpBranches,
+    classUrl,
+    updateClassUrl,
     subjects,
     roles,
     feedbacks,
