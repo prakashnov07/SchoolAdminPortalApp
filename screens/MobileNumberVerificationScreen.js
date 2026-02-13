@@ -243,7 +243,7 @@ export default function MobileNumberVerificationScreen({ navigation }) {
       const response = await axios.get('/getallbranches', {
         params: { fcm_project: 'noticeboard-1' }
       });
-      console.log('Branches response:', response.data.allbranches[0].branchname);
+      // console.log('Branches response:', response.data.allbranches[0]?.branchname);
       if (response.data && response.data.allbranches) {
         setBranches(response.data.allbranches);
       }

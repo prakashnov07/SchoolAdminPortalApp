@@ -13,16 +13,16 @@ export default function EmployeeAttendanceListScreen({ route, navigation }) {
     const styleContext = useContext(StyleContext);
     const coreContext = useContext(CoreContext);
     const { branchid, phone, schoolData } = coreContext;
-    const { emps = [], status = 'all', date = '' } = route.params || {};
+    const { emps: empsParam, status = 'all', date = '' } = route.params || {};
     
     const [search, setSearch] = useState('');
-    const [employees, setEmployees] = useState(emps);
+    const [employees, setEmployees] = useState(empsParam || []);
     const [refreshing, setRefreshing] = useState(false);
 
     // Update employees when emps prop changes
     useEffect(() => {
-        setEmployees(emps);
-    }, [emps]);
+        if (empsParam) setEmployees(empsParam);
+    }, [empsParam]);
 
     // Auto-refresh disabled - use pull-to-refresh instead
     // The auto-refresh was causing the list to clear
@@ -68,6 +68,13 @@ export default function EmployeeAttendanceListScreen({ route, navigation }) {
             setRefreshing(false);
         }
     };
+
+    // Auto-fetch if no employees passed but date is present
+    useEffect(() => {
+        if ((!empsParam || empsParam.length === 0) && date) {
+            refreshEmployeeList();
+        }
+    }, [date, empsParam]);
 
     // Calculate statistics
     const presentEmps = employees.filter(emp => emp && emp.att_status === 'present');
@@ -475,8 +482,14 @@ export default function EmployeeAttendanceListScreen({ route, navigation }) {
                 refreshing={refreshing}
                 onRefresh={refreshEmployeeList}
                 ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>No employees found</Text>
+                    <View style={{ alignItems: 'center', marginTop: 50, padding: 20 }}>
+                        <Icon name="account-search" size={60} color="#ccc" />
+                        <Text style={{ textAlign: 'center', marginTop: 10, color: '#888', fontSize: 16 }}>
+                            No employees found
+                        </Text>
+                        <Text style={{ textAlign: 'center', marginTop: 5, color: '#aaa', fontSize: 14 }}>
+                            Try adjusting your search or filters
+                        </Text>
                     </View>
                 }
             />

@@ -9,7 +9,8 @@ export default function CustomPickerModal({
     selectedValue, 
     onSelect, 
     onClose, 
-    onReload 
+    onReload,
+    onConfirm
 }) {
     const styleContext = useContext(StyleContext);
     const [tempSelectedValue, setTempSelectedValue] = React.useState(selectedValue);
@@ -21,7 +22,11 @@ export default function CustomPickerModal({
     }, [visible, selectedValue]);
 
     const handleConfirm = () => {
-        onSelect(tempSelectedValue);
+        if (onConfirm) {
+            onConfirm(tempSelectedValue);
+        } else {
+            onSelect(tempSelectedValue);
+        }
         onClose();
     };
 
@@ -48,7 +53,10 @@ export default function CustomPickerModal({
                                     styleContext.pickerModalItem,
                                         value === tempSelectedValue && styleContext.pickerModalItemSelected,
                                     ]}
-                                        onPress={() => setTempSelectedValue(value)}
+                                        onPress={() => {
+                                            setTempSelectedValue(value);
+                                            if (onSelect) onSelect(value);
+                                        }}
                                 >
                                     <Text
                                     style={[

@@ -65,6 +65,8 @@ import AddOnlineExamQuestionScreen from './screens/AddOnlineExamQuestionScreen';
 import OnlineExamSettingsScreen from './screens/OnlineExamSettingsScreen';
 import OnlineClassSchedulesScreen from './screens/OnlineClassSchedulesScreen';
 import AddOnlineClassScreen from './screens/AddOnlineClassScreen';
+import DriverBusesScreen from './screens/DriverBusesScreen';
+import StudentBusRouteScreen from './screens/StudentBusRouteScreen';
 import { CoreProvider } from './context/CoreContext';
 import {StyleProvider} from './context/StyleContext';
 
@@ -110,6 +112,9 @@ function MainTabs() {
     </Tab.Navigator>
   );
 }
+
+import LeavePlannerScreen from './screens/LeavePlannerScreen';
+import StaffListOnLeaveScreen from './screens/StaffListOnLeaveScreen';
 
 export default function App() {
   return (
@@ -449,10 +454,30 @@ export default function App() {
               }}
             />
             <Stack.Screen
+              name="LeavePlannerScreen"
+              component={LeavePlannerScreen}
+              options={{
+                title: 'Leave Planner',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
               name="EmployeeAttendanceListScreen"
               component={EmployeeAttendanceListScreen}
               options={{
                 title: 'Employee Attendance List',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="StaffListOnLeaveScreen"
+              component={StaffListOnLeaveScreen}
+              options={{
+                title: 'Employees on Leave',
                 headerStyle: { backgroundColor: '#5a45d4' },
                 headerTintColor: '#fff',
                 headerTitleStyle: { fontWeight: 'bold' },
@@ -731,6 +756,67 @@ export default function App() {
                 headerStyle: { backgroundColor: '#5a45d4' },
                 headerTintColor: '#fff',
                 headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="DriverBusesScreen"
+              component={DriverBusesScreen}
+              options={{
+                title: 'Transport / GPS',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="BranchSettingsScreen"
+              component={require('./screens/BranchSettingsScreen').default}
+              options={{
+                title: 'Branch Settings',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="ManageAdminTabsScreen"
+              component={require('./screens/ManageAdminTabsScreen').default}
+              options={{
+                title: 'Manage Admin Tabs',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="StudentBusRouteScreen"
+              component={StudentBusRouteScreen}
+              options={{
+                title: 'Track Bus',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="WifiSettingsScreen"
+              component={require('./screens/WifiSettingsScreen').default}
+              options={{
+                title: 'Wi-Fi Settings',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
+              name="Warning"
+              component={require('./screens/WarningScreen').default}
+              options={{
+                title: 'Warning',
+                headerStyle: { backgroundColor: '#ff4444' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+                headerLeft: null
               }}
             />
         </Stack.Navigator>

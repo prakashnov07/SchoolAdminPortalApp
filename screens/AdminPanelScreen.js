@@ -14,8 +14,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { CoreContext } from '../context/CoreContext';
 import { StyleContext } from '../context/StyleContext';
 
-
-
 const adminPanelStyles = {
   listContent: {
     paddingHorizontal: 12,
@@ -161,12 +159,11 @@ const adminPanelItems = [
   { key: 'onlineExam', label: 'Online Exam', icon: 'message-text-outline', color: '#9c27b0' },
   { key: 'onlineClasses', label: 'Online Classes', icon: 'bookmark-outline', color: '#1976d2' },
   { key: 'transportGPS', label: 'Transport GPS', icon: 'train-car', color: '#1976d2' },
-
   { key: 'leavePlanner', label: 'Leave Planner', icon: 'calendar-clock', color: '#f57c00' },
   { key: 'myProfile', label: 'My Profile', icon: 'account-circle', color: '#9c27b0' },
 ];
 
-function AdminHeader({ onLogout }) {
+function AdminHeader({ onLogout, onSettingsPress }) {
   return (
     <LinearGradient colors={['#5a45d4', '#8562ff']} style={adminPanelStyles.headerContainer}>
       <View style={adminPanelStyles.headerTopRow}>
@@ -178,7 +175,7 @@ function AdminHeader({ onLogout }) {
           <TouchableOpacity style={adminPanelStyles.iconButton} activeOpacity={0.7}>
             <Icon name="bell" size={24} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity style={adminPanelStyles.iconButton} activeOpacity={0.7}>
+          <TouchableOpacity style={adminPanelStyles.iconButton} onPress={onSettingsPress} activeOpacity={0.7}>
             <Icon name="cog" size={24} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity style={[adminPanelStyles.iconButton, { marginLeft: 12 }]} onPress={onLogout} activeOpacity={0.7}>
@@ -328,6 +325,13 @@ export default function AdminPanelScreen({ navigation }) {
       navigation.navigate('ViewOnlineExamsScreen');
     } else if (item.key === 'onlineClasses') {
       navigation.navigate('OnlineClassSchedulesScreen');
+    } else if (item.key === 'leavePlanner') {
+      navigation.navigate('LeavePlannerScreen');
+    } else if (item.key === 'myProfile') {
+      // Navigate to StaffProfile with current user's phone (owner)
+      navigation.navigate('StaffProfileScreen', { staff: { phone: coreContext.phone } });
+    } else if (item.key === 'transportGPS') {
+      navigation.navigate('DriverBusesScreen');
     } else {
       Alert.alert(item.label, `You clicked on ${item.label}`);
     }
@@ -353,7 +357,10 @@ export default function AdminPanelScreen({ navigation }) {
       }}
       edges={Platform.OS === 'ios' ? ['top', 'bottom'] : ['bottom']}
     >
-      <AdminHeader onLogout={handleLogout} />
+      <AdminHeader
+        onLogout={handleLogout}
+        onSettingsPress={() => navigation.navigate('BranchSettingsScreen')}
+      />
       <FlatList
         data={filteredItems}
         renderItem={renderItem}

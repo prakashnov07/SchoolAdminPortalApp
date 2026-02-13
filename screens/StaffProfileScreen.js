@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Image, StyleSheet, TextInput, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import ImagePicker from 'react-native-image-crop-picker';
 import Toast from 'react-native-toast-message';
@@ -32,24 +33,33 @@ export default function StaffProfileScreen({ navigation, route }) {
     const [leavingDate, setLeavingDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     
-    useEffect(() => {
-        if (staff) {
-            fetchEmployeeDetails(staff.phone);
-        }
-    }, [staff]);
+    // Attendance State
+    const [attendanceStatus, setAttendanceStatus] = useState('not marked');
+    const [inTime, setInTime] = useState('');
+    const [outTime, setOutTime] = useState('');
+    const [showAttendanceButton, setShowAttendanceButton] = useState(false);
+    const [showOutButton, setShowOutButton] = useState(false);
+
+    // Use useFocusEffect to refresh data when screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            if (staff) {
+                fetchEmployeeDetails(staff.phone);
+                checkAttendanceStatus(staff.phone);
+            }
+        }, [staff])
+    );
 
     const fetchEmployeeDetails = (empPhone) => {
         setLoading(true);
-        // Using route params phone as 'owner' for this specific call as per legacy
-        // Legacy: axios.get('/employee-details-phone', { params: { owner, branchid } })
-        // where owner was the passed phone.
         axios.get('/employee-details-phone', { params: { owner: empPhone, branchid } })
             .then(response => {
                 if (response.data && response.data.employee) {
                     setEmpDetails(response.data.employee);
-
-
-
+                    // Also check attendance if we didn't have phone before
+                    if (!staff && response.data.employee.mobile) {
+                        checkAttendanceStatus(response.data.employee.mobile);
+                    }
                 } else {
                      Alert.alert('Info', 'Employee details not found');
                 }
@@ -60,6 +70,31 @@ export default function StaffProfileScreen({ navigation, route }) {
                 setLoading(false);
                 Alert.alert('Error', 'Failed to fetch details');
             });
+    };
+
+    const checkAttendanceStatus = (ownerPhone) => {
+        // endpoint: /check-staff-today-attendance passed as params
+        axios.get('/check-staff-today-attendance', { params: { owner: ownerPhone, branchid } }).then((response) => {
+            const { status, out_status, in_time, out_time } = response.data;
+
+            setAttendanceStatus(status);
+            if (status === 'not marked') {
+                setShowAttendanceButton(true);
+                setShowOutButton(false);
+            } else {
+                setShowAttendanceButton(false);
+            }
+
+            if (status === 'present') {
+                setInTime(in_time);
+                if (out_status === 'yes') {
+                    setOutTime(out_time);
+                    setShowOutButton(false);
+                } else {
+                    setShowOutButton(true);
+                }
+            }
+        }).catch(err => console.log('Attendance Check Error:', err));
     };
 
     const handleSuspend = () => {
@@ -311,11 +346,11 @@ export default function StaffProfileScreen({ navigation, route }) {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Update Photo</Text>
                         <TouchableOpacity style={styles.modalItem} onPress={handleCamera}>
-                            <Icon name="camera" size={24} color={styleContext.primaryColor} style={{ marginRight: 10 }} />
+                            <Icon name="camera" size={24} color={styleContext.colors?.primary || '#5a45d4'} style={{ marginRight: 10 }} />
                             <Text style={styles.modalItemText}>Take Photo</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.modalItem} onPress={handleGallery}>
-                            <Icon name="image" size={24} color={styleContext.primaryColor} style={{ marginRight: 10 }} />
+                            <Icon name="image" size={24} color={styleContext.colors?.primary || '#5a45d4'} style={{ marginRight: 10 }} />
                             <Text style={styles.modalItemText}>Choose from Gallery</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={[styles.modalItem, { borderBottomWidth: 0 }]} onPress={() => setImageOptionsVisible(false)}>
@@ -330,7 +365,7 @@ export default function StaffProfileScreen({ navigation, route }) {
     if (loading) {
         return (
             <SafeAreaView style={styleContext.background}>
-                <ActivityIndicator size="large" color={styleContext.primaryColor} style={{ marginTop: 50 }} />
+                <ActivityIndicator size="large" color={styleContext.colors?.primary || '#5a45d4'} style={{ marginTop: 50 }} />
             </SafeAreaView>
         );
     }
@@ -365,7 +400,7 @@ export default function StaffProfileScreen({ navigation, route }) {
                         <TouchableOpacity onPress={handlePhotoEdit} disabled={uploading}>
                             <View style={{ width: 100, height: 100, borderRadius: 50, backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center', marginBottom: 10, overflow: 'hidden' }}>
                                 {uploading ? (
-                                    <ActivityIndicator size="small" color={styleContext.primaryColor} />
+                                    <ActivityIndicator size="small" color={styleContext.colors?.primary || '#5a45d4'} />
                                 ) : getPhotoSource() ? (
                                     <Image source={getPhotoSource()} style={{ width: 100, height: 100 }} />
                                 ) : (
@@ -385,47 +420,97 @@ export default function StaffProfileScreen({ navigation, route }) {
                      </View>
 
                      <View style={styles.infoRow}>
-                        <Icon name="phone" size={20} color={styleContext.primaryColor} style={{ width: 30 }} />
+                        <Icon name="phone" size={20} color={styleContext.colors?.primary || '#5a45d4'} style={{ width: 30 }} />
                         <Text style={styles.infoText}>{empDetails.mobile}</Text>
                      </View>
                      <View style={styles.infoRow}>
-                        <Icon name="email" size={20} color={styleContext.primaryColor} style={{ width: 30 }} />
+                        <Icon name="email" size={20} color={styleContext.colors?.primary || '#5a45d4'} style={{ width: 30 }} />
                         <Text style={styles.infoText}>{empDetails.email || 'No Email'}</Text>
                      </View>
                      <View style={styles.infoRow}>
-                        <Icon name="map-marker" size={20} color={styleContext.primaryColor} style={{ width: 30 }} />
+                        <Icon name="map-marker" size={20} color={styleContext.colors?.primary || '#5a45d4'} style={{ width: 30 }} />
                         <Text style={styles.infoText}>{empDetails.address || 'No Address'}</Text>
                      </View>
 
-                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
-                         <TouchableOpacity 
-                            style={[styles.actionBtn, { backgroundColor: staff.status === 'suspended' ? '#388e3c' : '#E0A800' }]}
-                            onPress={handleSuspend}
-                         >
-                            <Text style={styles.btnText}>{staff.status === 'suspended' ? 'Activate' : 'Suspend'}</Text>
-                         </TouchableOpacity>
-                         
-                         <TouchableOpacity 
-                            style={[styles.actionBtn, { backgroundColor: '#C82333' }]}
-                            onPress={handleDelete}
-                         >
-                             <Text style={styles.btnText}>Delete</Text>
-                         </TouchableOpacity>
-                     </View>
+                    {phone !== empDetails.mobile && (
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
+                            <TouchableOpacity 
+                                style={[styles.actionBtn, { backgroundColor: (empDetails.status || staff.status) === 'suspended' ? '#388e3c' : '#E0A800' }]}
+                                onPress={handleSuspend}
+                            >
+                                <Text style={styles.btnText}>{(empDetails.status || staff.status) === 'suspended' ? 'Activate' : 'Suspend'}</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.actionBtn, { backgroundColor: '#C82333' }]}
+                                onPress={handleDelete}
+                            >
+                                <Text style={styles.btnText}>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
+
+
+
+                {/* Attendance Section */}
+                <View style={styleContext.card}>
+                    <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 15, color: styleContext.titleColor }}>Today's Attendance</Text>
+
+                    {showAttendanceButton && (
+                        <TouchableOpacity
+                            style={[styles.actionBtn, { backgroundColor: styleContext.colors?.primary || '#5a45d4', marginBottom: 10, flex: 0, width: '100%', height: 50, minHeight: 50 }]}
+                            onPress={() => navigation.navigate('MarkStaffAttendanceScreen', { staffId: empDetails.emp_id, staffMobile: empDetails.mobile, staffName: empDetails.fname + ' ' + empDetails.lname, action: 'in' })}
+                        >
+                            <Text style={styles.btnText}>Mark Attendance</Text>
+                        </TouchableOpacity>
+                    )}
+
+                    {inTime ? (
+                        <View style={styles.infoRow}>
+                            <Icon name="clock-in" size={20} color="green" style={{ width: 30 }} />
+                            <Text style={[styles.infoText, { fontWeight: 'bold', color: 'green' }]}>In Time: {inTime}</Text>
+                        </View>
+                    ) : null}
+
+                    {showOutButton && (
+                        <TouchableOpacity
+                            style={[styles.actionBtn, { backgroundColor: '#E0A800', marginVertical: 10, flex: 0, width: '100%', height: 50, minHeight: 50 }]}
+                            onPress={() => navigation.navigate('MarkStaffAttendanceScreen', { staffId: empDetails.emp_id, staffMobile: empDetails.mobile, staffName: empDetails.fname + ' ' + empDetails.lname, action: 'out' })}
+                        >
+                            <Text style={styles.btnText}>Mark Out</Text>
+                        </TouchableOpacity>
+                    )}
+
+                    {outTime ? (
+                        <View style={styles.infoRow}>
+                            <Icon name="clock-out" size={20} color="red" style={{ width: 30 }} />
+                            <Text style={[styles.infoText, { fontWeight: 'bold', color: 'red' }]}>Out Time: {outTime}</Text>
+                        </View>
+                    ) : null}
+
+                    {!showAttendanceButton && !showOutButton && !inTime && !outTime && (
+                        <Text style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
+                            {attendanceStatus === 'present' ? 'Attendance Marked' : 'Not Marked'}
+                        </Text>
+                    )}
+
                 </View>
 
                 {/* Additional Actions */}
                  <View style={styleContext.card}>
-                    <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.navigate('SalaryDetailsScreen', { staff: staff || empDetails })}>
+                    <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.navigate('SalaryDetailsScreen', { staff: empDetails })}>
                         <Text style={styles.secondaryBtnText}>Salary Details</Text>
                         <Icon name="chevron-right" size={20} color="#666" />
                     </TouchableOpacity>
                     <View style={{ height: 1, backgroundColor: '#eee' }} />
-                    <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.navigate('StaffAttendanceScreen', { staff: staff || empDetails })}>
-                        <Text style={styles.secondaryBtnText}>Attendance</Text>
+                    <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.navigate('StaffAttendanceScreen', { staff: { ...empDetails, empid: empDetails.emp_id } })}>
+                        <Text style={styles.secondaryBtnText}>Calendar / Leave</Text>
                         <Icon name="chevron-right" size={20} color="#666" />
                     </TouchableOpacity>
                  </View>
+
+
 
             </ScrollView>
 

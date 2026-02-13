@@ -97,7 +97,15 @@ export function CoreProvider({ children }) {
 
   const getGroupBranches = async () => {
     const value = await AsyncStorage.getItem('@schoolapp:core');
-    const { branchid } = value !== null ? JSON.parse(value) : '';
+    let branchid = '';
+    if (value) {
+      try {
+        const parsed = JSON.parse(value);
+        branchid = parsed.branchid;
+      } catch (e) {
+        console.log('Error parsing core value', e);
+      }
+    }
 
     let grpBranches = [];
     const groupBranches = unhydrate('@schoolapp:groupBranches');
@@ -127,6 +135,26 @@ export function CoreProvider({ children }) {
         })
         .catch();
     }
+  };
+
+  const fetchAllBranches = () => {
+    // Legacy getGroupBranchesTech logic
+    axios.get('/getallbranches', { params: { branchid } })
+      .then((response) => {
+        if (response.data && response.data.allbranches) {
+          setGrpBranches(response.data.allbranches);
+          if (response.data.allbranches.length > 0) {
+            hydrate('@schoolapp:groupBranches', response.data.allbranches);
+          }
+          showToastMessage('Branch data refreshed successfully');
+        } else {
+          showToastMessage('No branches found');
+        }
+      })
+      .catch(err => {
+        console.log(err);
+        showToastMessage('Failed to refresh branch data');
+      });
   };
 
 
@@ -610,7 +638,7 @@ export function CoreProvider({ children }) {
 
   }
 
-  const checkUserValidity = async (history) => {
+  const checkUserValidity = async (navigation) => {
 
 
     const value = await AsyncStorage.getItem('@schoolapp:core');
@@ -640,25 +668,27 @@ export function CoreProvider({ children }) {
           if (test.verified === 'fail') { //fail
             deleteAsyncData(branchid);
             setCoreValues('', '', branchid, '', '', 'deleted');
-            history.push('/warning');
+
+            // Navigate to Warning
+            if (navigation) navigation.navigate('Warning');
           }
           else {
             if (test.status === 'app_reg_ini') {
               if (role === 'enquiry') {
                 setTimeout(() => {
-                  history.push('/home', { reg: enrid[0], store_in: 'application' });
+                  if (navigation) navigation.navigate('Home', { reg: enrid[0], store_in: 'application' });
                 }, 1000);
               }
               else {
                 setTimeout(() => {
-                  history.push('/home', { reg: enrid[0], store_in: 'student' });
+                  if (navigation) navigation.navigate('Home', { reg: enrid[0], store_in: 'student' });
                 }, 1000);
               }
 
             }
             else if (test.status === 'app_reg_class') {
               setTimeout(() => {
-                history.push('/home', { reg: enrid[0] });
+                if (navigation) navigation.navigate('Home', { reg: enrid[0] });
               }, 1000);
 
             } else if (test.status === 'enrolled') {
@@ -703,19 +733,19 @@ export function CoreProvider({ children }) {
             }
             else if (test.status === 'suspended') {
               setStatus('suspended');
-              history.push('/warning');
+              if (navigation) navigation.navigate('Warning');
             }
             else if (test.role !== ro) {
               deleteAsyncData(branchid);
               setStatus('role-changed');
-              history.push('/warning');
+              if (navigation) navigation.navigate('Warning');
             }
           }
         } else {
           deleteAsyncData(branchid);
           setCoreValues('', '', branchid, '', '', '', 'deleted');
           setStatus('logout');
-          history.push('/warning');
+          if (navigation) navigation.navigate('Warning');
         }
       });
   };
@@ -1106,7 +1136,8 @@ export function CoreProvider({ children }) {
     getGroupBranches,
 
     processConcessionRequest,
-    processReceiptCancelRequest
+    processReceiptCancelRequest,
+    fetchAllBranches
 
   }}>{children}</CoreContext.Provider>;
 }

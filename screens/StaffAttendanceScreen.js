@@ -338,7 +338,7 @@ export default function StaffAttendanceScreen({ route, navigation }) {
                 <ScrollView ref={scrollViewRef} contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
                  <View style={styleContext.card}>
                      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10, color: styleContext.titleColor }}>
-                         {staff.name}
+                            {staff.name || (staff.fname ? `${staff.fname} ${staff.lname || ''}` : 'Staff Member')}
                      </Text>
                      
                      {selectedLeaveDates.length > 0 ? (
