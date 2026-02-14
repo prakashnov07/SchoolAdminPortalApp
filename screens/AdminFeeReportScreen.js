@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useContext, useLayoutEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, TextInput, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, TextInput, StyleSheet, FlatList } from 'react-native';
 import { Card, Icon, BottomSheet, ListItem } from 'react-native-elements';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -12,7 +12,7 @@ import { StyleContext } from '../context/StyleContext';
 import StudentPicker from '../components/StudentPicker';
 import CustomPickerModal from '../components/CustomPickerModal';
 
-export default function AdminFeeReportScreen({ navigation }) {
+export default function AdminFeeReportScreen({ navigation, route }) {
     const coreContext = useContext(CoreContext);
     const styleContext = useContext(StyleContext);
     
@@ -20,7 +20,9 @@ export default function AdminFeeReportScreen({ navigation }) {
     const [menuVisible, setMenuVisible] = useState(false);
     const { branchid, schooldata } = coreContext;
 
-    const [regno, setRegno] = useState('');
+    const { enrollment } = route.params || {};
+
+    const [regno, setRegno] = useState(enrollment);
     const [loading, setLoading] = useState(false);
     const [feeReport, setFeeReport] = useState(null);
     const [selectedMonth, setSelectedMonth] = useState(coreContext.cmo + '');
@@ -91,6 +93,9 @@ export default function AdminFeeReportScreen({ navigation }) {
                 setMonthLabel(m.name);
                 setSelectedMonth(m.id);
                 setPickerValue(m.id);
+                if (regno) {
+                    fetchFeeReport();
+                }
             }
         }
     }, [coreContext.cmo]);
@@ -165,6 +170,7 @@ export default function AdminFeeReportScreen({ navigation }) {
                     
                     <StudentPicker 
                         onSelect={(student) => setRegno(student.enrollment)}
+                        selectedStudent={regno}
                     />
 
                     <View style={{ marginBottom: 15 }} />

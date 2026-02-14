@@ -26,12 +26,14 @@ export default function BranchSettingsScreen({ navigation }) {
     const [classTeacherInApp, setClassTeacherInApp] = useState('no');
     const [tAmount, setTAmount] = useState('');
     const [nom, setNom] = useState('');
+    const [studentRecordEditable, setStudentRecordEditable] = useState('no');
+    const [studentPhotoEditable, setStudentPhotoEditable] = useState('no');
 
     // Picker State
     const [pickerVisible, setPickerVisible] = useState(false);
     const [pickerConfig, setPickerConfig] = useState({ title: '', data: [] });
     const [pickerSelectedValue, setPickerSelectedValue] = useState(null);
-    const [pickerTarget, setPickerTarget] = useState(null); // 'branch'|'sort'|'defaultAtt'|'wifi'|'manual'|'manualStaff'|'salary'|'classTeacher'|'feeMonth'
+    const [pickerTarget, setPickerTarget] = useState(null); // 'branch'|'sort'|'defaultAtt'|'wifi'|'manual'|'manualStaff'|'salary'|'classTeacher'|'feeMonth'|'studentRec'|'studentPhoto'
 
     const months = [
         { id: 1, name: 'April' }, { id: 2, name: 'May' }, { id: 3, name: 'June' },
@@ -77,6 +79,10 @@ export default function BranchSettingsScreen({ navigation }) {
             setTAmount(String(schoolData.defaulterCallThreshold || ''));
             // Ensure dcmo is handled correctly as value (number)
             setNom(parseInt(schoolData.dcmo || 0));
+
+            // Student Editable Settings
+            setStudentRecordEditable(schoolData.studentRecordEditable ? 'yes' : 'no');
+            setStudentPhotoEditable(schoolData.studentPhotoEditable ? 'yes' : 'no');
         }
     };
 
@@ -179,6 +185,19 @@ export default function BranchSettingsScreen({ navigation }) {
         updateSetting('app-fee-defaulter-month', val, 'Fee Defaulter Month');
     };
 
+    const handleStudentRecordEditable = (val) => {
+        setStudentRecordEditable(val);
+        updateSetting('app_student_record_editable', val, 'Student Record Editable');
+        // Refresh school data to reflect changes globally if needed
+        if (coreContext.getSchoolData) coreContext.getSchoolData();
+    };
+
+    const handleStudentPhotoEditable = (val) => {
+        setStudentPhotoEditable(val);
+        updateSetting('app_student_photo_editable', val, 'Student Photo Editable');
+        if (coreContext.getSchoolData) coreContext.getSchoolData();
+    };
+
     const changeBranch = async (newBranchId) => {
         if (newBranchId !== branchid) {
             setLoading(true);
@@ -186,21 +205,29 @@ export default function BranchSettingsScreen({ navigation }) {
             const selectedBranch = grpBranches.find(b => b.branchid === newBranchId);
             if (selectedBranch) {
                 // Set Authorization header like legacy code
-                axios.defaults.headers.common.Authorization = selectedBranch.appid;
-                try {
-                    await AsyncStorage.setItem('branchAppId', JSON.stringify(selectedBranch.appid));
-                } catch (e) {
-                    console.error('Failed to save branchAppId', e);
+                if (selectedBranch.appid) {
+                    axios.defaults.headers.common.Authorization = selectedBranch.appid;
+
+                    try {
+                        await AsyncStorage.setItem('branchAppId', JSON.stringify(selectedBranch.appid));
+                    } catch (e) {
+                        console.error('Failed to save branchAppId', e);
+                    }
                 }
             }
 
-            setBranchid(newBranchId);
-            Toast.show({
-                type: 'success',
-                text1: 'Branch Switched',
-                text2: `Switched to branch ID: ${newBranchId}`
-            });
+
+            const result = await coreContext.switchBranch(newBranchId, navigation, '', selectedBranch);
+            if (result) {
+                // Success handled by context toast or we can do more here
+                // coreContext.setBranch already updates state and shows toast
+            } else {
+                // Failure handled by context toast
+            }
+            // setBranchid(newBranchId); // Handled by context
+
             setLoading(false);
+
         }
     };
 
@@ -242,6 +269,12 @@ export default function BranchSettingsScreen({ navigation }) {
                 break;
             case 'feeMonth':
                 handleFeeMonth(val);
+                break;
+            case 'studentRec':
+                handleStudentRecordEditable(val);
+                break;
+            case 'studentPhoto':
+                handleStudentPhotoEditable(val);
                 break;
             default:
                 break;
@@ -307,6 +340,22 @@ export default function BranchSettingsScreen({ navigation }) {
                             </TouchableOpacity>
                         )}
                     </View>
+                )}
+
+                {/* Student Record Editable */}
+                {renderCard('Student Record Editable',
+                    renderPicker('Student Record Editable', studentRecordEditable, [
+                        { label: 'Yes', value: 'yes' },
+                        { label: 'No', value: 'no' }
+                    ], 'studentRec')
+                )}
+
+                {/* Student Photo Editable */}
+                {renderCard('Student Photo Editable',
+                    renderPicker('Student Photo Editable', studentPhotoEditable, [
+                        { label: 'Yes', value: 'yes' },
+                        { label: 'No', value: 'no' }
+                    ], 'studentPhoto')
                 )}
 
                 {/* Sort Students */}

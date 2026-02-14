@@ -6,7 +6,7 @@ import { CoreContext } from '../context/CoreContext';
 
 export default function StudentPicker({ onSelect, selectedStudent, placeholder }) {
     const coreContext = useContext(CoreContext);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(selectedStudent || '');
     const [searchResults, setSearchResults] = useState([]);
     const [searching, setSearching] = useState(false);
     const [showResults, setShowResults] = useState(false);

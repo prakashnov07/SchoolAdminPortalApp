@@ -1,4 +1,5 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useCallback, useRef } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import axios from 'axios';
@@ -30,11 +31,24 @@ export default function SearchStudentScreen({ navigation }) {
     const [pickerSelectedValue, setPickerSelectedValue] = useState(null);
     const [pickerType, setPickerType] = useState(null); // 'class'|'section'|'stype'|'bus'|'route'
 
+    // Check if we have successfully searched at least once to enable auto-refresh
+    const hasSearchedRef = useRef(false);
+
     useEffect(() => {
         if (!allClasses || allClasses.length === 0) getAllClasses();
         if (!allSections || allSections.length === 0) getAllSections();
         fetchBuses();
     }, []);
+
+
+    useFocusEffect(
+        useCallback(() => {
+            // Only auto-refresh if we have previously performed a successful search
+            if (hasSearchedRef.current) {
+                handleSearch(true);
+            }
+        }, [handleSearch])
+    );
 
     const fetchBuses = () => {
         axios.get('/all-buses', { params: { branchid } })
@@ -45,14 +59,14 @@ export default function SearchStudentScreen({ navigation }) {
             .catch(err => console.error(err));
     };
 
-    const fetchRoutes = (busNo) => {
+    const fetchRoutes = useCallback((busNo) => {
         axios.get('/bus-routes', { params: { branchid, busno: busNo } })
             .then(res => {
                 const list = res.data.allRoutes || [];
                 setAllRoutes(list.map(r => ({ label: r.name, value: r.name })));
             })
             .catch(err => console.error(err));
-    };
+    }, [branchid]);
 
     const handleClassSelect = () => {
         const data = allClasses.map(c => ({ label: c.classname, value: c.classid }));
@@ -109,7 +123,7 @@ export default function SearchStudentScreen({ navigation }) {
         setPickerVisible(false);
     };
 
-    const handleSearch = () => {
+    const handleSearch = useCallback((isAutoRefresh = false) => {
         // Validation: At least one filter should be selected to avoid fetching entire DB?
         // Or if class/section mandatory?
         if (!selectedClass && !selectedBus) {
@@ -123,7 +137,10 @@ export default function SearchStudentScreen({ navigation }) {
         }
 
 
+        if (!isAutoRefresh) setLoading(true); // Don't show loading on auto-refresh to keep it smooth? Or show it?
+        // User prefers loading indicator usually.
         setLoading(true);
+
         axios.get('/search-by-class-v2', {
             params: {
                 classid: selectedClass,
@@ -143,12 +160,13 @@ export default function SearchStudentScreen({ navigation }) {
             .then(res => {
                 setStudents(res.data.rows || []);
                 setLoading(false);
+                hasSearchedRef.current = true; // Mark as searched
             })
             .catch(err => {
                 console.error(err);
                 setLoading(false);
             });
-    };
+    }, [selectedClass, selectedSection, studentType, selectedBus, selectedRoute, phone, branchid]);
 
     const handleStudentPress = (student) => {
         navigation.navigate('StudentProfileScreen', { student });

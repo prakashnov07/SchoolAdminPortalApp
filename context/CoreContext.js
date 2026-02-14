@@ -1,4 +1,4 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
@@ -456,93 +456,70 @@ export function CoreProvider({ children }) {
   };
 
 
-  const fetchSqlMessages = () => {
+  const loadSqlMessages_3 = useCallback(async () => {
+    try {
+      const value = await AsyncStorage.getItem('@schoolapp:core');
+      const ls = JSON.parse(value);
 
+      const owner = phone ? phone : ls?.phone;
+      const ro = ls?.role;
+      const br = branchid ? branchid : ls?.branchid;
+      const enrid = id ? id : ls?.id;
+
+      const messageStorage = '@schoolapp:messages:' + br;
+      const messages = unhydrate(messageStorage);
+
+
+      messages.then((data) => {
+        // console.log('messages from storage', data);
+        if (data && data.length > 0) {
+          setMessages(data);
+          let lastMessageId = data[0].id;
+
+          axios.get('/home-page-messages-2', { params: { enrid, id: lastMessageId, role: ro, owner, branchid: br } })
+            .then((response) => {
+              const fetchedMessages = response.data?.messages ?? [];
+              const allMessages = [...fetchedMessages, ...data];
+              const uniqueMessages = allMessages.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i);
+
+              const homePageMessages = uniqueMessages.filter((um) => {
+                const mdate = um.dat.split(' ')[0];
+                if (todayDiff(mdate) <= 30) return um;
+              });
+
+              setMessages(homePageMessages);
+              hydrate(messageStorage, homePageMessages);
+
+              const schMessages = response.data?.scheduledMessages ?? [];
+              if (schMessages?.length > 0) {
+                const schMessage = schMessages[0];
+                axios.post('/sendnotification', { title: schMessage.title, content: schMessage.content, classid: schMessage.classid, sectionid: schMessage.sectionid, branchid: br });
+              }
+            }).catch(err => console.log(err));
+        }
+        else {
+          // Admin/Staff logic or initial load
+          let lastMessageId = 0;
+          axios.get('/home-page-messages-2', { params: { enrid, id: lastMessageId, role: ro, owner, branchid: br } })
+            .then((response) => {
+              const fetchedMessages = response.data?.messages ?? [];
+              setMessages(fetchedMessages);
+              hydrate(messageStorage, response.data.messages);
+
+              const schMessages = response.data?.scheduledMessages ?? [];
+              if (schMessages?.length > 0) {
+                const schMessage = schMessages[0];
+                axios.post('/sendnotification', { title: schMessage.title, content: schMessage.content, classid: schMessage.classid, sectionid: schMessage.sectionid, branchid: br });
+              }
+            }).catch(err => console.log(err));
+        }
+      });
+    } catch (e) { console.log(e); }
+  }, [phone, branchid, id]);
+
+  const fetchSqlMessages = useCallback(() => {
     loadSqlMessages_3();
-
-  }
-
-  const loadSqlMessages_3 = async () => {
-
-    const value = await AsyncStorage.getItem('@schoolapp:core');
-    const ls = JSON.parse(value);
-
-    const owner = phone ? phone : ls?.phone;
-    const ro = ls?.role;
-    const br = branchid ? branchid : ls?.branchid;
-    const enrid = id ? id : ls?.id;
-    const pw = ls?.pwa_token;
-    const ut = ls?.utype;
-
-
-    const messageStorage = '@schoolapp:messages:' + br;
-    const messages = unhydrate(messageStorage);
-
-    let lastMessageId = 0;
-
-
-    messages.then((data) => {
-      if (data.length > 0) {
-        lastMessageId = data[0].id;
-        // console.log('getting new messages', lastMessageId);
-
-        setMessages(data);
-
-
-        axios.get('/home-page-messages-2', { params: { enrid, id: lastMessageId, role: ro, owner, branchid: br } })
-          .then((response) => {
-            // var arrayWithUniqueValues = value.filter((v, i, a) => a.indexOf(v) === i);
-
-            const fetchedMessages = response.data?.messages ?? [];
-
-            const allMessages = [...fetchedMessages, ...data];
-            const uniqueMessages = allMessages.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i);
-
-            const homePageMessages = uniqueMessages.filter((um) => {
-              const mdate = um.dat.split(' ')[0];
-              if (todayDiff(mdate) <= 30) return um;
-            });
-
-            // console.log('New Messages', allMessages);
-
-            setMessages(homePageMessages);
-
-            hydrate(messageStorage, homePageMessages);
-
-            // if there are scheduled messages read then send notification to otherss
-            const schMessages = response.data?.scheduledMessages ?? [];
-            if (schMessages?.length > 0) {
-              const schMessage = schMessages[0];
-              axios.post('/sendnotification', { title: schMessage.title, content: schMessage.content, classid: schMessage.classid, sectionid: schMessage.sectionid, branchid: br });
-            }
-
-          }).catch(err => console.log(err));
-      }
-      else {
-        // console.log('getting all messages', lastMessageId);
-        axios.get('/home-page-messages-2', { params: { enrid, id: lastMessageId, role: ro, owner, branchid: br } })
-          .then((response) => {
-
-            //   console.log('all messages', response.data.messages);
-            const fetchedMessages = response.data?.messages ?? [];
-            setMessages(fetchedMessages);
-
-            hydrate(messageStorage, response.data.messages);
-
-            // if there are scheduled messages read then send notification to otherss
-
-            const schMessages = response.data?.scheduledMessages ?? [];
-            if (schMessages?.length > 0) {
-              const schMessage = schMessages[0];
-              axios.post('/sendnotification', { title: schMessage.title, content: schMessage.content, classid: schMessage.classid, sectionid: schMessage.sectionid, branchid: br });
-            }
-
-          }).catch(err => console.log(err));;
-      }
-
-    });
-
-  };
+  }, [loadSqlMessages_3]);
 
   const getSchoolData = async () => {
     const value = await AsyncStorage.getItem('@schoolapp:core');
@@ -1042,6 +1019,52 @@ export function CoreProvider({ children }) {
     return false;
   };
 
+  const switchBranch = async (targetBranchId, navigation, arole = '', branchData = null) => {
+    const owner = phone;
+    let roleToUse = arole || role;
+
+    try {
+      const response = await axios.get('/checkuservalidity', { params: { owner, role: roleToUse, branchid: targetBranchId } });
+      const test = response.data?.test;
+
+      if (test && test.verified === 'fail') {
+        showToastMessage('Your mobile number is not registered in this branch');
+        return false;
+      } else {
+        const response1 = await axios.get('/addallregistrationno', { params: { phone, branchid: targetBranchId } });
+        const { test: newregnos, testt: newschonos, email: emails } = response1.data;
+
+        const value = await AsyncStorage.getItem('@schoolapp:core');
+        if (value !== null) {
+          const core = JSON.parse(value);
+          const newValue = { ...core, id: newregnos, branchid: targetBranchId, scholars: newschonos, emails: emails };
+
+          setBranchid(targetBranchId);
+          setId(newregnos);
+          setScholars(newschonos);
+          setEmails(emails);
+          setBranch(branchData);
+
+          await AsyncStorage.setItem('@schoolapp:core', JSON.stringify(newValue));
+          showToastMessage('Branch switched successfully');
+
+          if (navigation) {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'MainTabs' }],
+            });
+          }
+          return true;
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      showToastMessage('Failed to switch branch');
+      return false;
+    }
+    return false;
+  };
+
   return <CoreContext.Provider value={{
     owner: phone,
     id,
@@ -1137,7 +1160,11 @@ export function CoreProvider({ children }) {
 
     processConcessionRequest,
     processReceiptCancelRequest,
-    fetchAllBranches
+    processConcessionRequest,
+    processReceiptCancelRequest,
+    fetchAllBranches,
+    switchBranch
+
 
   }}>{children}</CoreContext.Provider>;
 }

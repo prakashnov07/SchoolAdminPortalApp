@@ -1,4 +1,5 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, TextInput, Platform, Linking, Image } from 'react-native';
 import { CoreContext } from '../context/CoreContext';
 import { StyleContext } from '../context/StyleContext';
@@ -11,7 +12,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import CustomPickerModal from '../components/CustomPickerModal';
 
 export default function StudentProfileScreen({ navigation, route }) {
-    const { schoolData, branchid, phone: owner, hasTabPermission } = useContext(CoreContext);
+    const { schoolData, branchid, phone: owner, hasTabPermission, role, getSchoolData } = useContext(CoreContext);
     const styleContext = useContext(StyleContext);
     // Destructure styles from context
     const { 
@@ -42,9 +43,22 @@ export default function StudentProfileScreen({ navigation, route }) {
     const [suspendRemarks, setSuspendRemarks] = useState('');
     const [showDatePicker, setShowDatePicker] = useState(false);
 
+    const fetchHouses = useCallback(async () => {
+        if (!branchid) return;
+        try {
+            const response = await axios.get('houses', { params: { branchid } });
+            if (response.data && response.data.houses) {
+                setHouses(response.data.houses.map(h => ({ label: h.housename, value: h.id })));
+            }
+        } catch (error) {
+            console.error('Error fetching houses:', error);
+        }
+    }, [branchid]);
+
     useEffect(() => {
         fetchHouses();
-        
+
+
         // Add Search Icon to Header
         navigation.setOptions({
              headerRight: () => (
@@ -62,16 +76,29 @@ export default function StudentProfileScreen({ navigation, route }) {
 
     }, [route.params]);
 
-    const fetchHouses = async () => {
-        try {
-            const response = await axios.get('houses', { params: { branchid } });
-            if (response.data && response.data.houses) {
-                setHouses(response.data.houses.map(h => ({ label: h.housename, value: h.id })));
+    useFocusEffect(
+        useCallback(() => {
+            const fetchHousesCem = async () => {
+                if (!branchid) return;
+                try {
+                    const response = await axios.get('houses', { params: { branchid } });
+                    if (response.data && response.data.houses) {
+                        setHouses(response.data.houses.map(h => ({ label: h.housename, value: h.id })));
+                    }
+                } catch (error) {
+                    console.error('Error fetching houses:', error);
+                }
+            };
+
+            fetchHousesCem();
+
+            if (getSchoolData) {
+                getSchoolData();
             }
-        } catch (error) {
-            console.error('Error fetching houses:', error);
-        }
-    };
+        }, [branchid, getSchoolData])
+    );
+
+
 
     const handleSelectStudent = async (student) => {
         // Set basic info from picker first
@@ -177,35 +204,7 @@ export default function StudentProfileScreen({ navigation, route }) {
         }
     };
 
-    const handleMakePhotoEditable = async () => {
-         setActionLoading(true);
-         try {
-            const value = studentPhotoEditable ? 'no' : 'yes';
-            await axios.post('/set-other-details', { name: 'app_student_photo_editable', per: value, branchid });
-            // Ideally trigger a refresh of schoolData or manually update local check (but schoolData comes from context)
-            // For now, feedback to user
-            Toast.show({ type: 'success', text1: `Photo editing ${value === 'yes' ? 'enabled' : 'disabled'}` });
-            if(coreContext.getSchoolData) coreContext.getSchoolData(); 
-         } catch (e) {
-             console.error(e);
-         } finally {
-             setActionLoading(false);
-         }
-    };
-    
-    const handleMakeRecordEditable = async () => {
-         setActionLoading(true);
-         try {
-            const value = studentRecordEditable ? 'no' : 'yes';
-            await axios.post('/set-other-details', { name: 'app_student_record_editable', per: value, branchid });
-            Toast.show({ type: 'success', text1: `Record editing ${value === 'yes' ? 'enabled' : 'disabled'}` });
-            if(coreContext.getSchoolData) coreContext.getSchoolData();
-         } catch (e) {
-             console.error(e);
-         } finally {
-             setActionLoading(false);
-         }
-    };
+
 
     const handleImagePick = async () => {
         if (!studentPhotoEditable) {
@@ -360,7 +359,7 @@ export default function StudentProfileScreen({ navigation, route }) {
     };
 
     const handleFeeReport = () => {
-        navigation.navigate('AdminFeeReportScreen');
+        navigation.navigate('AdminFeeReportScreen', { enrollment: selectedStudent?.enrollment });
     };
 
     // Picker Logic
@@ -519,11 +518,11 @@ export default function StudentProfileScreen({ navigation, route }) {
                          {renderInput('contact1', 'contact1', 'Contact I', true, 10)}
                          {renderInput('contact2', 'contact2', 'Contact II', true, 10)}
                          
-                         {renderInput('contact2', 'contact2', 'Contact II', true, 10)}
+
                          
                          {renderInput('localaddress', 'localaddress', 'Address', false, 200, true)} 
                          {renderInput('aadharno', 'aadharno', 'Aadhar No', true, 12)} 
-                         {renderInput('aadharno', 'aadharno', 'Aadhar No', true, 12)}
+
                          {renderInput('caste', 'caste', 'Caste')}
                          
                          {/* Category Picker - Custom */}
@@ -593,19 +592,7 @@ export default function StudentProfileScreen({ navigation, route }) {
                             )}
                          </View>
 
-                         {/* Admin Controls */}
-                         {(schoolData.role === 'super' || schoolData.role === 'tech') && (
-                             <View style={{ marginTop: 20 }}>
-                                 <TouchableOpacity onPress={handleMakeRecordEditable} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                                     <Icon name={studentRecordEditable ? "checkbox-marked" : "checkbox-blank-outline"} size={24} color="#666" />
-                                     <Text style={{ marginLeft: 10 }}>Student Record {studentRecordEditable ? 'Editable' : 'Not Editable'}</Text>
-                                 </TouchableOpacity>
-                                 <TouchableOpacity onPress={handleMakePhotoEditable} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                     <Icon name={studentPhotoEditable ? "checkbox-marked" : "checkbox-blank-outline"} size={24} color="#666" />
-                                     <Text style={{ marginLeft: 10 }}>Student Photo {studentPhotoEditable ? 'Editable' : 'Not Editable'}</Text>
-                                 </TouchableOpacity>
-                             </View>
-                         )}
+
 
                     </View>
                 ) : (
