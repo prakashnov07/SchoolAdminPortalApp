@@ -406,7 +406,15 @@ export default function MarkAttendance({ navigation }) {
                 contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
                 ListEmptyComponent={
                     !searchLoading && students.length === 0 ? 
-                    <Text style={{ textAlign: 'center', marginTop: 20, color: '#fff' }}>No students fetched</Text> 
+                        <View style={{ alignItems: 'center', marginTop: 40 }}>
+                            <Icon name="account-search-outline" size={48} color="#ccc" />
+                            <Text style={{ textAlign: 'center', marginTop: 10, color: '#666', fontSize: 16, fontWeight: '500' }}>
+                                No students found
+                            </Text>
+                            <Text style={{ textAlign: 'center', color: '#999', fontSize: 12 }}>
+                                Try adjusting the class/section filters
+                            </Text>
+                        </View>
                     : null
                 }
             />

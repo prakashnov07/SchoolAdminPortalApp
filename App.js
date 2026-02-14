@@ -799,6 +799,16 @@ export default function App() {
               }}
             />
             <Stack.Screen
+              name="MessageViewersListScreen"
+              component={require('./screens/MessageViewersListScreen').default}
+              options={{
+                title: 'Delivery Report',
+                headerStyle: { backgroundColor: '#5a45d4' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              }}
+            />
+            <Stack.Screen
               name="WifiSettingsScreen"
               component={require('./screens/WifiSettingsScreen').default}
               options={{

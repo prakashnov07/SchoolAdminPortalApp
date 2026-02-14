@@ -7,6 +7,7 @@ import axios from 'axios';
 import { CoreContext } from '../context/CoreContext';
 import CustomPickerModal from '../components/CustomPickerModal';
 import EventAttendanceModal from '../components/EventAttendanceModal';
+import TransportScanSuccessModal from '../components/TransportScanSuccessModal';
 import Toast from 'react-native-toast-message';
 
 const { width, height } = Dimensions.get('window');
@@ -47,6 +48,12 @@ export default function ScanStudentScreen({ navigation }) {
     const [eventHistory, setEventHistory] = useState([]);
     const [eventStatus, setEventStatus] = useState(null);
     const [scannedStudent, setScannedStudent] = useState(null);
+
+    // Transport Success Modal State
+    const [transportSuccessVisible, setTransportSuccessVisible] = useState(false);
+    const [transportSuccessStudent, setTransportSuccessStudent] = useState(null);
+    const [transportSuccessStatus, setTransportSuccessStatus] = useState(null);
+    const [transportSuccessMessage, setTransportSuccessMessage] = useState('');
 
     useEffect(() => {
         const getPermissions = async () => {
@@ -155,18 +162,38 @@ export default function ScanStudentScreen({ navigation }) {
         })
             .then(response => {
                 const result = response.data.result;
+
+                const showModal = (status, msg) => {
+                    // Fetch student details for modal
+                    axios.get('/fetchstudentdetails', { params: { regnos: [regno], branchid } })
+                        .then(res => {
+                            if (res.data.students && res.data.students.length > 0) {
+                                setTransportSuccessStudent(res.data.students[0]);
+                                setTransportSuccessStatus(status);
+                                setTransportSuccessMessage(msg);
+                                setTransportSuccessVisible(true);
+                            } else {
+                                // Fallback
+                                Toast.show({ type: status === 'error' || status === 'wrong' ? 'error' : 'success', text1: msg, text2: `Student ID: ${regno}` });
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Student fetch error", err);
+                            Toast.show({ type: status === 'error' || status === 'wrong' ? 'error' : 'success', text1: msg, text2: `Student ID: ${regno}` });
+                        });
+                };
+
                 if (result === 'ok') {
-                    Toast.show({ type: 'success', text1: 'Attendance Marked', text2: `Student ID: ${regno} Present` });
+                    showModal('success', 'Attendance Marked');
                 } else if (result === 'out') {
-                    Toast.show({ type: 'success', text1: 'Marked OUT', text2: `Student ID: ${regno} Out` });
+                    showModal('out', 'Marked OUT');
                 } else if (result === 'already') {
-                    Toast.show({ type: 'info', text1: 'Already Marked', text2: `Student ID: ${regno}` });
+                    showModal('already', 'Already Marked');
                 } else if (result === 'wrong') {
-                    Toast.show({ type: 'error', text1: 'Wrong bus or route', text2: 'Attendance not marked.' });
+                    showModal('wrong', 'Wrong Bus/Route');
                 } else {
-                    Toast.show({ type: 'error', text1: 'Error', text2: 'Could not mark attendance.' });
+                    showModal('error', 'Error Marking Attendance');
                 }
-                setTimeout(() => setScanned(false), 2000);
             })
             .catch(err => {
                 console.error(err);
@@ -389,6 +416,18 @@ export default function ScanStudentScreen({ navigation }) {
                 onClose={() => setEventModalVisible(false)}
                 onMarkPresent={() => submitEventAttendance('present')}
                 onMarkAbsent={() => submitEventAttendance('absent')}
+            />
+
+            {/* Transport Success Modal */}
+            <TransportScanSuccessModal
+                visible={transportSuccessVisible}
+                student={transportSuccessStudent}
+                status={transportSuccessStatus}
+                message={transportSuccessMessage}
+                onClose={() => {
+                    setTransportSuccessVisible(false);
+                    setScanned(false);
+                }}
             />
         </View>
     );

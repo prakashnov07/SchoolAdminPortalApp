@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { Text, View, Image, TouchableOpacity, Linking, Dimensions, Alert, useWindowDimensions, LayoutAnimation, Animated, Platform } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import RenderHtml from 'react-native-render-html';
 import ImageView from 'react-native-image-viewing'; // Replaces PhotoView
 import Hyperlink from 'react-native-hyperlink';
@@ -16,6 +17,7 @@ import axios from 'axios';
 
 const SqlMessageItem = ({ item }) => {
   const { width: contentWidth } = useWindowDimensions();
+  const navigation = useNavigation();
   const context = useContext(CoreContext);
   const styleContext = useContext(StyleContext);
   const { role, owner, deleteMessage, processConcessionRequest, processReceiptCancelRequest, markMessageAsRead } = context;
@@ -52,6 +54,19 @@ const SqlMessageItem = ({ item }) => {
 
   const titleColor = getTitleColor();
   const [readerCount, setReaderCount] = useState(''); // Stub for now or fetch if needed
+
+  useEffect(() => {
+    const getMessageReadersCount = () => {
+      axios.get('get-message-reader-count', { params: { id: item.id, branchid: context.branchid } }).then((response) => {
+        const count = response.data.count;
+        setReaderCount(count);
+      });
+    };
+
+    if (role === 'admin' || role === 'super' || role === 'tech' || role === 'principal' || owner === item.owner) {
+      getMessageReadersCount();
+    }
+  }, [item, context.branchid]);
 
   // Initial Image Loader Logic
   useEffect(() => {
@@ -125,11 +140,18 @@ const SqlMessageItem = ({ item }) => {
   };
 
   const onResendButtonPress = () => {
-     console.log('Forward pressed'); 
+    navigation.navigate('SendMessages', { copyMessage: item.content, copyMessageType: item.msg_type }); 
   };
   
   const onReaderButtonPress = () => {
-    console.log('Viewers pressed');
+    // console.log('Viewers pressed');
+    // Navigate using global navigation ref or imported navigation if available, 
+    // but here we are using React Navigation. 
+    // Since SqlMessageItem might not have 'navigation' prop directly if not a screen,
+    // we might need useNavigation hook.
+    // However, looking at the code structure, let's assume valid navigation context or use a ref.
+    // If this component is used inside a screen, we should use useNavigation.
+    navigation.navigate('MessageViewersListScreen', { item });
   };
   
   const renderReSendButton = (aStatus = 'approved', msgType = '') => {

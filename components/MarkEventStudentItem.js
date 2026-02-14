@@ -7,9 +7,21 @@ export default function MarkEventStudentItem({ student, isSelected, onToggle, at
     const styleContext = useContext(StyleContext);
     const { text, primary } = styleContext;
 
+    // Determine colors based on selection
+    // Selected = Absent = Red
+    const borderColor = isSelected ? '#D33A2C' : (attStatus === 'present' ? 'green' : (attStatus === 'absent' ? 'red' : '#ccc'));
+    const backgroundColor = isSelected ? '#ffebee' : '#fff';
+    const iconColor = isSelected ? '#D33A2C' : '#757575';
+
     return (
         <TouchableOpacity 
-            style={[styles.card, { borderLeftColor: attStatus === 'present' ? 'green' : (attStatus === 'absent' ? 'red' : '#ccc'), borderLeftWidth: 5 }]} 
+            style={[styles.card, {
+                borderLeftColor: borderColor,
+                borderLeftWidth: 5,
+                backgroundColor: backgroundColor,
+                borderColor: isSelected ? '#D33A2C' : 'transparent',
+                borderWidth: isSelected ? 1 : 0
+            }]} 
             onPress={onToggle}
         >
             <View style={styles.row}>
@@ -23,7 +35,7 @@ export default function MarkEventStudentItem({ student, isSelected, onToggle, at
                     <Icon 
                         name={isSelected ? "checkbox-marked" : "checkbox-blank-outline"} 
                         size={28} 
-                        color={isSelected ? (primary?.backgroundColor || '#6200ee') : '#757575'} 
+                        color={iconColor} 
                     />
                 </View>
             </View>

@@ -120,7 +120,7 @@ export default function SendMessagesScreen() {
   /* Removed duplicate menuVisible */
   const navigation = useNavigation();
   const route = useRoute();
-  const { fromSearch, classid: searchClassId, sectionid: searchSectionId, stype, busno, routename: searchRouteVar, selectedStudent } = route.params || {};
+  const { fromSearch, classid: searchClassId, sectionid: searchSectionId, stype, busno, routename: searchRouteVar, selectedStudent, copyMessage, copyMessageType } = route.params || {};
 
 
   useEffect(() => {
@@ -137,6 +137,15 @@ export default function SendMessagesScreen() {
     getAllClasses();
     getAllSections();
   }, []);
+
+  useEffect(() => {
+    if (copyMessage) {
+      setMessageText(copyMessage);
+    }
+    if (copyMessageType) {
+      setMsgType(copyMessageType);
+    }
+  }, [copyMessage, copyMessageType]);
 
   const getClassOptions = () => {
     const opts = [

@@ -168,53 +168,75 @@ export default function StudentAttendanceCard({
             {/* Action Row: Checkboxes */}
             <View style={{ 
                 flexDirection: 'row', 
-                justifyContent: !isMarked ? 'space-between' : (isAbsent ? 'flex-end' : 'flex-start'), 
+                justifyContent: 'space-between',
                 alignItems: 'center', 
                 marginTop: 16,
-                backgroundColor: '#fafafa',
-                borderRadius: 8,
-                padding: 8
+                backgroundColor: '#fff',
+                // borderRadius: 8,
+                // padding: 8
             }}>
                 
                 {/* Present Box */}
-                {(!isMarked || !isAbsent) && (
-                    <TouchableOpacity 
-                        onPress={() => !isMarked && onToggleAbsence(item.enrollment, false)}
-                        disabled={isMarked}
-                        style={{ flexDirection: 'row', alignItems: 'center' }}
-                    >
-                        <Icon 
-                            name={(!isMarked && !isAbsent) || (isMarked && !isAbsent) ? "checkbox-marked-circle" : "checkbox-blank-circle-outline"}
-                            size={28} 
-                            color={(!isMarked && !isAbsent) || (isMarked && !isAbsent) ? "#28a745" : "#bbb"} 
-                        />
-                        <Text style={{ 
-                            marginLeft: 6, 
-                            color: (!isMarked && !isAbsent) || (isMarked && !isAbsent) ? "#28a745" : "#777", 
-                            fontWeight: 'bold' 
-                        }}>Present</Text>
-                    </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                    onPress={() => !isMarked && onToggleAbsence(item.enrollment, false)}
+                    disabled={isMarked}
+                    style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        backgroundColor: (!isMarked && !isAbsent) || (isMarked && !isAbsent) ? '#e8f5e9' : '#f5f5f5',
+                        paddingVertical: 10,
+                        paddingHorizontal: 20,
+                        borderRadius: 25,
+                        flex: 1,
+                        marginRight: 8,
+                        justifyContent: 'center',
+                        borderWidth: 1,
+                        borderColor: (!isMarked && !isAbsent) || (isMarked && !isAbsent) ? '#28a745' : '#eee'
+                    }}
+                >
+                    <Icon 
+                        name={(!isMarked && !isAbsent) || (isMarked && !isAbsent) ? "check-circle" : "checkbox-blank-circle-outline"}
+                        size={24}
+                        color={(!isMarked && !isAbsent) || (isMarked && !isAbsent) ? "#28a745" : "#bbb"}
+                    />
+                    <Text style={{
+                        marginLeft: 6,
+                        color: (!isMarked && !isAbsent) || (isMarked && !isAbsent) ? "#28a745" : "#777", 
+                        fontWeight: 'bold',
+                        fontSize: 16
+                    }}>Present</Text>
+                </TouchableOpacity>
 
                 {/* Absent Box */}
-                {(!isMarked || isAbsent) && (
-                    <TouchableOpacity 
-                        onPress={() => !isMarked && onToggleAbsence(item.enrollment, true)} 
-                        disabled={isMarked}
-                        style={{ flexDirection: 'row', alignItems: 'center' }}
-                    >
-                        <Text style={{ 
-                            marginRight: 6, 
-                            color: isAbsent ? "#D33A2C" : "#777", 
-                            fontWeight: 'bold' 
-                        }}>Absent</Text>
-                        <Icon 
-                            name={isAbsent ? "checkbox-marked-circle" : "checkbox-blank-circle-outline"} 
-                            size={28} 
-                            color={isAbsent ? "#D33A2C" : "#bbb"} 
-                        />
-                    </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                    onPress={() => !isMarked && onToggleAbsence(item.enrollment, true)}
+                    disabled={isMarked}
+                    style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        backgroundColor: isAbsent ? '#ffebee' : '#f5f5f5',
+                        paddingVertical: 10,
+                        paddingHorizontal: 20,
+                        borderRadius: 25,
+                        flex: 1,
+                        marginLeft: 8,
+                        justifyContent: 'center',
+                        borderWidth: 1,
+                        borderColor: isAbsent ? '#D33A2C' : '#eee'
+                    }}
+                >
+                    <Icon
+                        name={isAbsent ? "close-circle" : "checkbox-blank-circle-outline"}
+                        size={24}
+                        color={isAbsent ? "#D33A2C" : "#bbb"}
+                    />
+                    <Text style={{ 
+                        marginLeft: 6,
+                        color: isAbsent ? "#D33A2C" : "#777", 
+                        fontWeight: 'bold',
+                        fontSize: 16
+                    }}>Absent</Text>
+                </TouchableOpacity>
             </View>
             
             {/* Footer: Refresh Button (Restored) */}
